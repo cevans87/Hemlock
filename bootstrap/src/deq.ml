@@ -8,8 +8,8 @@ type 'a t =
 let c = 2
 
 let empty = (
-  0, lazy Stream.Nil, lazy Stream.Nil,
-  0, lazy Stream.Nil, lazy Stream.Nil
+    0, lazy Stream.Nil, lazy Stream.Nil,
+    0, lazy Stream.Nil, lazy Stream.Nil
 )
 
 let length (lf, _, _, lr, _, _) =
@@ -303,13 +303,13 @@ let%expect_test "push_back" =
   let ppt = (pp Usize.pp) in
   printf "@[<h>";
   let rec fn i n t = begin
-    match i <= n with
-    | false -> ()
-    | true -> begin
-      let t' = push_back t i in
-      printf "push_back %a %a = %a\n" ppt t Usize.pp i ppt t';
-      fn (succ i) n t'
-    end
+      match i <= n with
+      | false -> ()
+      | true -> begin
+        let t' = push_back t i in
+        printf "push_back %a %a = %a\n" ppt t Usize.pp i ppt t';
+        fn (succ i) n t'
+      end
   end in
   fn 0 4 empty;
   printf "@]";

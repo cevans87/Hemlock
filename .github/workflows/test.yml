@@ -1,6 +1,6 @@
 name: Test
 
-on: pull_request
+on: [pull_request, push]
 
 jobs:
   run:
@@ -30,3 +30,8 @@ jobs:
     - name: test
       working-directory: ./bootstrap
       run: opam exec -- dune runtest
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.8'
+    - name: check-pr-ocp-indent
+      run: python ./.github/scripts/check_pr_ocp_indent.py
