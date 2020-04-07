@@ -26,6 +26,12 @@ val init: usize -> f:(usize -> 'a) -> 'a t
     of given length, where [f] provides the value for each element at given
     index. *)
 
+val init_indef: f:('state -> ('a * 'state) option) -> 'state -> 'a t
+(** Initialize stream.  [init_indef ~f:(fun state -> ...) state] lazily
+    initializes a stream, where [f] provides the value and remaining
+    initialization state for each subseqeunt element, continuing until [f]
+    returns [None]. *)
+
 (** {1 Length} *)
 
 val length: 'a t -> usize
