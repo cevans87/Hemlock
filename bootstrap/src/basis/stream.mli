@@ -46,8 +46,14 @@ val hd: 'a t -> 'a
 (** Return head (first) stream element, or halt if stream is empty. *)
 
 val tl: 'a t -> 'a t
-(** Return tail (a stream of all elements except head), or halt if list is
+(** Return tail (a stream of all elements except head), or halt if stream is
     empty. *)
+
+val next: 'a t -> ('a * 'a t) option
+(** Return next element and stream absent the element, or [None] if stream
+    is empty. *)
+
+(* TODO enable indefinite sequence *)
 
 (** {1 Combining and partitioning} *)
 
@@ -57,7 +63,7 @@ val push: 'a -> 'a t -> 'a t
 
 val pop: 'a t -> 'a * 'a t
 (** Pop head element off stream and return the decomposed element and remainder
-    stream.  Halt if the input list is empty. *)
+    stream or halt if the stream is empty. *)
 
 val concat: 'a t -> 'a t -> 'a t
 (** Concatenate two streams. *)

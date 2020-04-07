@@ -49,6 +49,10 @@ let tl = function
   | lazy Nil -> halt "Empty stream has no tail"
   | lazy (Cons(_, t)) -> t
 
+let next = function
+  | lazy Nil -> None
+  | lazy (Cons(elm, t')) -> Some(elm, t')
+
 (* Non-lazy internal function of push (conventionally named push'). It is
    exposed outside of push since it is useful within non-lazy sections of other
    stream functions. *)
