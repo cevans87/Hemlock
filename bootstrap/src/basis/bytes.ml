@@ -12,17 +12,6 @@ let hash_fold bytes state =
   |> Hash.State.Gen.fini
   |> Usize.hash_fold (Array.length bytes)
 
-let of_byte_stream bs =
-  let rec fn accum bs = begin
-    match bs with
-    | lazy Stream.Nil -> accum
-    | lazy (Stream.Cons(b, bs')) -> begin
-      let accum' = Array.append b accum in
-      fn accum' bs'
-    end
-  end in
-  fn [||] bs
-
 let of_codepoint cp =
   Array.of_list (Utf8.to_bytes (Utf8.of_codepoint cp))
 
@@ -181,30 +170,6 @@ let%expect_test "hash_fold empty" =
     |> hash_empty
   in
   assert U128.((Hash.t_of_state e1) <> (Hash.t_of_state e2));
-
-  [%expect{|
-    |}]
-
-let%expect_test "of_byte_stream" =
-  let open Format in
-  let strs = [
-    "<";
-    "«";
-    "‡";
-    "𐆗";
-  ] in
-  let bss = List.fold_right strs ~init:[] ~f:(fun s bss ->
-    (Stream.init (String.blength s) ~f:(fun i -> String.get i s)) :: bss
-  ) in
-  printf "@[<h>";
-  List.iter bss ~f:(fun bs ->
-    let bytes = of_byte_stream bs in
-    printf "'%a' -> %a -> %a\n"
-      (Stream.pp Byte.pp_x) bs
-      pp bytes
-      String.pp (to_string_hlt bytes)
-  );
-  printf "@]";
 
   [%expect{|
     |}]

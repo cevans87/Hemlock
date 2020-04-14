@@ -53,8 +53,6 @@ val next: 'a t -> ('a * 'a t) option
 (** Return next element and stream absent the element, or [None] if stream
     is empty. *)
 
-(* TODO enable indefinite sequence *)
-
 (** {1 Combining and partitioning} *)
 
 val push: 'a -> 'a t -> 'a t

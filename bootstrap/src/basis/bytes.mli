@@ -13,10 +13,6 @@ val hash_fold: t -> Hash.State.t -> Hash.State.t
 (** [hash_fold bytes] incorporates the hash of [bytes] into [state] and returns
     the resulting state. *)
 
-val of_byte_stream: Byte.t Stream.t -> t
-(** [of_byte_stream byte_stream] creates an array of bytes corresponding to the
-    sequence of bytes in [byte_stream]. *)
-
 val of_codepoint: codepoint -> t
 (** [of_codepoint codepoint] creates an array of bytes corresponding to the
     UTF-8 encoding of [codepoint]. *)
