@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e
+
+_CWD=$CWD
+trap 'dirs -c && cd $_CWD' exit
+
+
+if [ -z "$USER" ] ; then
+    export USER=$(id -u -n)
+fi
+if [ -z "$GROUP" ] ; then
+    export GROUP=$(id -g -n $USER)
+fi
+if [ -z "$GID" ] ; then
+    export GID=$(id -g $USER)
+fi
+if [ -z "$DOTFILES_GIT_REPO" ] ; then
+    pushd $HOME > /dev/null
+    export DOTFILES_GIT_REPO=$(git remote get-url origin || :)
+    if [ -z "$DOTFILES_GIT_HASH" ] ; then
+        export DOTFILES_GIT_HASH=$(git rev-parse HEAD)
+    fi
+    if [ -z "$DOTFILES_INSTALL" ] ; then
+        if [ -f "install.sh" ] ; then
+            export DOTFILES_INSTALL=install.sh
+        elif [ -f "install" ] ; then
+            export DOTFILES_INSTALL=install
+        elif [ -f "bootstrap.sh" ] ; then
+            export DOTFILES_INSTALL=bootstrap.sh
+        elif [ -f "bootstrap" ] ; then
+            export DOTFILES_INSTALL=bootstrap
+        elif [ -f "setup.sh" ] ; then
+            export DOTFILES_INSTALL=setup.sh
+        elif [ -f "setup" ] ; then
+            export DOTFILES_INSTALL=setup
+        fi
+    fi
+    popd > /dev/null
+fi
+
+echo "$(env)"
+
+docker-compose "$@"
