@@ -1,0 +1,40 @@
+services:
+  bootstrap-opam:
+    build:
+      args:
+        - OCAML_VERSION
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      target: boostrap-opam
+    image: ${IMAGE}:bootstrap-opam-${OCAML_VERSION}
+    container_name: branchtaken__hemlock__bootstrap-opam-${OCAML_VERSION}
+
+  bootstrap-user:
+    build:
+      args:
+        - DOTFILES_GIT_HASH
+        - DOTFILES_GIT_REPO
+        - DOTFILES_INSTALL
+        - GID
+        - GROUP
+        - HOME
+        - SHELL
+        - UID
+        - USER
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      target: bootstrap-user
+    image: branchtaken/hemlock:bootstrap-user-${USER}
+    container_name: branchtaken__hemlock__bootstrap-user-${USER}
+    volumes:
+      - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
+
+  bootstrap:
+    extends:
+      service: bootstrap-user
+    build:
+      args:
+        - OCAML_VERSION
+      target: bootstrap
+    image: ${IMAGE}:bootstrap-${OCAML_VERSION}-${USER}
+    container_name: branchtaken__hemlock__bootstrap-${OCAML_VERSION}-${USER}

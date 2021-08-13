@@ -1,0 +1,13 @@
+{
+    "name": "Hemlock Bootstrap",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "bootstrap",
+    "extensions": [
+        "asabil.meson",
+        "ms-azuretools.vscode-docker",
+        "ocamllabs.ocaml-platform"
+    ],
+    "workspaceFolder": "/home/cevans",
+    "runServices": ["bootstrap"],
+    "overrideCommand": "sleep infinity"
+}
