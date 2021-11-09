@@ -125,15 +125,10 @@ module Close = struct
 end
 
 let close t =
-  let value = close_inner t in
-  match Sint.(value < kv 0L) with
-  | false -> None
-  | true -> Some (Error.of_value value)
+  Close.(submit t |> complete)
 
 let close_hlt t =
-  match close t with
-  | None -> ()
-  | Some error -> halt (Error.to_string error)
+  Close.(submit t |> complete_hlt)
 
 let read_n = 1024L
 
