@@ -478,3 +478,25 @@ hm_ioring_close_submit(int fd, hm_ioring_t * ioring) {
 OUT:
     return user_data;
 }
+
+hm_user_data_t *
+hm_ioring_read_submit(int fd, uint8_t * buffer, uint64_t n, hm_ioring_t * ioring) {
+    hm_opt_error_t oe = HM_OE_NONE;
+    struct io_uring_sqe * sqe;
+    HM_OE(oe, hm_ioring_get_sqe(&sqe, ioring));
+
+    hm_user_data_t * user_data;
+    HM_OE(oe, hm_user_data_create(&user_data));
+    user_data->opcode = IORING_OP_READ;
+    user_data->buffer = buffer;
+
+    sqe->user_data = (uint64_t)user_data;
+    sqe->opcode = IORING_OP_READ;
+    sqe->off = -1;  // Use current file position.
+    sqe->fd = fd;
+    sqe->addr = (uint64_t)buffer;
+    sqe->len = n;
+
+OUT:
+    return user_data;
+}

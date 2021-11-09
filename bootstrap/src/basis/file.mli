@@ -70,6 +70,26 @@ val of_path_hlt: ?flag:Flag.t -> ?mode:uns -> Bytes.Slice.t -> t
     Flag.R_O) Unix file permissions and [mode] (default 0o660) Unix file permissions and and returns
     the resulting file or halts if the file could not be opened. *)
 
+module Read: sig
+  type file = t
+  type t
+  (* An internally immutable token backed by an external I/O read completion data structure. *)
+
+  val submit: ?n:uns -> ?buffer:Bytes.Slice.t -> file -> t
+  (** [submit n buffer file] submits a read for given [file]. If given, [n] is the maximum read size
+      and 1024 otherwise. If given, [buffer] is where read bytes are stored and the maximum read
+      size is the minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be
+      created with size [n]. This operation does not block. *)
+
+  val complete: t -> (Bytes.Slice.t, Error.t) result
+  (** [complete t] blocks until the given [t] is complete. Returns the buffer into which bytes were
+      read or an error if bytes could not be read. *)
+
+  val complete_hlt: t -> Bytes.Slice.t
+  (** [complete_hlt t] blocks until the given [t] is complete. Returns the buffer into which bytes
+      were read or halts if bytes could not be read. *)
+end
+
 (* val read_into: !&Bytes.Slice.t -> t $-> Error.t option *)
 val read_into: Bytes.Slice.t -> t -> Error.t option
 (** [read_into buffer t] reads up to n bytes from [t] into the given mutable [buffer], where n is
