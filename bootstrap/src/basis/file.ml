@@ -1,5 +1,7 @@
 open Rudiments
 
+external user_data_decref: t -> unit = "hm_basis_file_user_data_decref"
+
 module Error = struct
   type t = uns
 
@@ -340,3 +342,23 @@ module Fmt = struct
 
   let stderr = of_t ~bufsize:0L stderr
 end
+
+external setup_inner: unit -> u64 = "hm_basis_file_setup"
+
+let setup () =
+  let value = setup_inner () in
+  match Sint.(value < kv 0L) with
+  | false -> ()
+  | true -> halt (Error.to_string (Error.of_value value))
+
+let _ = setup ()
+
+external teardown_inner: unit -> u64 = "hm_basis_file_teardown"
+
+let teardown () =
+  let value = teardown_inner () in
+  match Sint.(value < kv 0L) with
+  | false -> ()
+  | true -> halt (Error.to_string (Error.of_value value))
+
+let _ = Stdlib.at_exit (fun () -> let _ = teardown () in ())
