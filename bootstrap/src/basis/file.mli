@@ -39,6 +39,25 @@ val stdout: t
 (* val stderr: t *)
 val stderr: t
 
+module Open: sig
+  type file = t
+  type t
+  (* An internally immutable token backed by an external I/O open completion data structure. *)
+
+  val submit: ?flag:Flag.t -> ?mode:uns -> Bytes.Slice.t -> t
+  (** [submit ~flag ~mode path] submits an open operation for a file at [path] with [flag] (default
+      Flag.R_O) Unix file permissions and [mode] (default 0o660) Unix file permissions. This
+      operation does not block. *)
+
+  val complete: t -> (file, Error.t) result
+  (** [complete t] blocks until give [t] is complete. Returns a file or an error if the file could
+      not be opened. *)
+
+  val complete_hlt: t -> file
+  (** [complete_hlt t] blocks until give [t] is complete. Returns a file or halts if the file could
+      not be opened. *)
+end
+
 (* val of_path: ?flag:Flag.t -> ?mode:uns -> /t Bytes.Slice.t $-> (t, Error.t) result *)
 val of_path: ?flag:Flag.t -> ?mode:uns -> Bytes.Slice.t -> (t, Error.t) result
 (** [of_path ~flag ~mode path] opens or creates the file at [path] with [flag] (default Flag.R_O)

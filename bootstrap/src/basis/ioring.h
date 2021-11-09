@@ -49,3 +49,5 @@ hm_opt_error_t hm_ioring_teardown(hm_ioring_t *ioring);
 hm_opt_error_t hm_ioring_enter(uint32_t *n_complete, uint32_t min_complete, hm_ioring_t *ioring);
 int hm_ioring_generic_complete(hm_user_data_t *user_data, hm_ioring_t *ioring);
 hm_user_data_t *hm_ioring_nop_submit(hm_ioring_t *ioring);
+hm_user_data_t * hm_ioring_open_submit(uint8_t * pathname, int flags, mode_t mode,
+  hm_ioring_t * ioring);

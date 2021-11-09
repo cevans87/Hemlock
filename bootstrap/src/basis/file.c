@@ -75,19 +75,6 @@ hm_basis_file_finalize_result(int result) {
 }
 
 CAMLprim value
-hm_basis_file_of_path_inner(value a_flag, value a_mode, value a_bytes) {
-    size_t flag = Long_val(a_flag);
-    size_t mode = Int64_val(a_mode);
-    uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
-    size_t n = caml_string_length(a_bytes);
-
-    int flags = flags_of_hemlock_file_flag[flag];
-    int result = open(bytes, flags, mode);
-
-    return hm_basis_file_finalize_result(result);
-}
-
-CAMLprim value
 hm_basis_file_stdin_inner(value a_unit) {
     return caml_copy_int64(STDIN_FILENO);
 }
@@ -167,6 +154,25 @@ hm_basis_file_generic_complete_inner(value a_user_data) {
 CAMLprim value
 hm_basis_file_nop_submit_inner(value a_unit) {
     hm_user_data_t * user_data = hm_ioring_nop_submit(&hm_executor_get()->ioring);
+
+    return caml_copy_int64((uint64_t) user_data);
+}
+
+CAMLprim value
+hm_basis_file_open_submit_inner(value a_flag, value a_mode, value a_bytes) {
+    size_t flag = Long_val(a_flag);
+    size_t mode = Int64_val(a_mode);
+    uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
+    size_t n = caml_string_length(a_bytes);
+
+    int flags = flags_of_hemlock_file_flag[flag];
+
+    uint8_t * pathname = (uint8_t *)malloc(sizeof(uint8_t) * (n + 1));
+    memcpy (pathname, bytes, sizeof(uint8_t) * n);
+    pathname[n] = '\0';
+
+    hm_user_data_t * user_data = hm_ioring_open_submit(pathname, flags, mode,
+      &hm_executor_get()->ioring);
 
     return caml_copy_int64((uint64_t) user_data);
 }
