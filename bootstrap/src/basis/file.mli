@@ -100,6 +100,23 @@ val write_hlt: Bytes.Slice.t -> t -> unit
 (** [write_hlt bytes t] writes [bytes] to [t] and returns a unit or halts if bytes could not be
     written. *)
 
+module Close: sig
+  type file = t
+  type t
+  (* An internally immutable token backed by an external I/O close completion data structure. *)
+
+  val submit: file -> t
+  (** [submit file] submits a close for given [file]. This operation does not block. *)
+
+  val complete: t -> Error.t option
+  (** [complete t] blocks until the given [t] is complete. Returns None or an error if file could
+      not be closed. *)
+
+  val complete_hlt: t -> unit
+  (** [complete_hlt t] blocks until the given [t] is complete. Returns a unit or halts if file could
+      not be closed. *)
+end
+
 (* val close: t $-> Error.t option *)
 val close: t -> Error.t option
 (** [close t] closes the external mutable Unix file descriptor associated with [t] and returns None

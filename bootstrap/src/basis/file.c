@@ -90,13 +90,6 @@ hm_basis_file_stderr_inner(value a_unit) {
 }
 
 CAMLprim value
-hm_basis_file_close_inner(value a_fd) {
-    int fd = Int64_val(a_fd);
-
-    return hm_basis_file_finalize_result(close(fd));
-}
-
-CAMLprim value
 hm_basis_file_read_inner(value a_bytes, value a_fd) {
     uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
     size_t n = caml_string_length(a_bytes);
@@ -173,6 +166,15 @@ hm_basis_file_open_submit_inner(value a_flag, value a_mode, value a_bytes) {
 
     hm_user_data_t * user_data = hm_ioring_open_submit(pathname, flags, mode,
       &hm_executor_get()->ioring);
+
+    return caml_copy_int64((uint64_t) user_data);
+}
+
+CAMLprim value
+hm_basis_file_close_submit_inner(value a_fd) {
+    int fd = Int64_val(a_fd);
+
+    hm_user_data_t * user_data = hm_ioring_close_submit(fd, &hm_executor_get()->ioring);
 
     return caml_copy_int64((uint64_t) user_data);
 }
