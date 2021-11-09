@@ -51,21 +51,9 @@ let bytes_of_slice slice =
     Char.chr (Uns.trunc_to_int (U8.extend_to_uns (Array.get (base + (Int64.of_int i)) container)))
   )
 
-(* external of_path_inner: Flag.t -> uns -> _?bytes >os-> int *)
-external of_path_inner: Flag.t -> uns -> Stdlib.Bytes.t -> sint = "hm_basis_file_of_path_inner"
 type t = uns
 
-let of_path ?(flag=Flag.R_O) ?(mode=0o660L) path =
-  let path_bytes = bytes_of_slice path in
-  let value = of_path_inner flag mode path_bytes in
-  match Sint.(value < kv 0L) with
-  | false -> Ok (Uns.bits_of_sint value)
-  | true -> Error (Uns.bits_of_sint Sint.(neg value))
 
-let of_path_hlt ?flag ?mode path =
-  match of_path ?flag ?mode path with
-  | Ok t -> t
-  | Error error -> halt (Error.to_string error)
 
 (* external stdin_inner: uns *)
 external stdin_inner: unit -> t = "hm_basis_file_stdin_inner"
@@ -85,8 +73,64 @@ external stderr_inner: unit -> t = "hm_basis_file_stderr_inner"
 let stderr =
   stderr_inner ()
 
-(* external close_inner: t >os-> int *)
-external close_inner: t -> sint = "hm_basis_file_close_inner"
+module Open = struct
+  type file = t
+  type t = uns
+
+  external submit_inner: Flag.t -> uns -> Stdlib.Bytes.t -> t = "hm_basis_file_open_submit_inner"
+
+  let submit ?(flag=Flag.R_O) ?(mode=0o660L) path =
+    let path_bytes = bytes_of_slice path in
+    let t = submit_inner flag mode path_bytes in
+    Stdlib.Gc.finalise user_data_decref t;
+    t
+
+  external complete_inner: t -> i64 = "hm_basis_file_generic_complete_inner"
+
+  let complete t =
+    let value = complete_inner t in
+    match (value < 0L) with
+    | false -> Ok (Uns.bits_of_sint value)
+    | true -> Error (Uns.bits_of_sint Sint.(neg value))
+
+  let complete_hlt t =
+    match complete t with
+    | Ok t -> t
+    | Error error -> halt (Error.to_string error)
+
+end
+
+let of_path ?flag ?mode path =
+  Open.(submit ?flag ?mode path |> complete)
+
+let of_path_hlt ?flag ?mode path =
+  Open.(submit ?flag ?mode path |> complete_hlt)
+
+module Close = struct
+  type file = t
+  type t = uns
+
+  external submit_inner: file -> uns = "hm_basis_file_close_submit_inner"
+
+  let submit file =
+    let t = submit_inner file in
+    Stdlib.Gc.finalise user_data_decref t;
+    t
+
+  external complete_inner: uns -> i64 = "hm_basis_file_generic_complete_inner"
+
+  let complete t =
+    let value = complete_inner t in
+    match (value < 0L) with
+    | false -> None
+    | true -> Some (Error.of_value value)
+
+  let complete_hlt t =
+    match complete t with
+    | None -> ()
+    | Some error -> halt (Error.to_string error)
+
+end
 
 let close t =
   let value = close_inner t in
