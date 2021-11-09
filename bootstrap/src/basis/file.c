@@ -90,17 +90,6 @@ hm_basis_file_stderr_inner(value a_unit) {
 }
 
 CAMLprim value
-hm_basis_file_read_inner(value a_bytes, value a_fd) {
-    uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
-    size_t n = caml_string_length(a_bytes);
-    int fd = Int64_val(a_fd);
-
-    int result = read(fd, bytes, n);
-
-    return hm_basis_file_finalize_result(result);
-}
-
-CAMLprim value
 hm_basis_file_write_inner(value a_bytes, value a_fd) {
     uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
     size_t n = caml_string_length(a_bytes);
@@ -145,6 +134,20 @@ hm_basis_file_generic_complete_inner(value a_user_data) {
 }
 
 CAMLprim value
+hm_basis_file_read_complete_inner(value a_bytes, value a_user_data) {
+    hm_user_data_t * user_data = (hm_user_data_t *) Int64_val(a_user_data);
+
+    int64_t res = hm_ioring_generic_complete(user_data, &hm_executor_get()->ioring);
+
+    if (res >= 0) {
+        uint8_t * bytes = (uint8_t *)Bytes_val(a_bytes);
+        memcpy(bytes, user_data->buffer, res);
+    }
+
+    return caml_copy_int64(res);
+}
+
+CAMLprim value
 hm_basis_file_nop_submit_inner(value a_unit) {
     hm_user_data_t * user_data = hm_ioring_nop_submit(&hm_executor_get()->ioring);
 
@@ -175,6 +178,18 @@ hm_basis_file_close_submit_inner(value a_fd) {
     int fd = Int64_val(a_fd);
 
     hm_user_data_t * user_data = hm_ioring_close_submit(fd, &hm_executor_get()->ioring);
+
+    return caml_copy_int64((uint64_t) user_data);
+}
+
+CAMLprim value
+hm_basis_file_read_submit_inner(value a_n, value a_fd) {
+    uint64_t n = Int64_val(a_n);
+    int fd = Int64_val(a_fd);
+
+    uint8_t * buffer = (uint8_t *)malloc(sizeof(uint8_t) * n);
+
+    hm_user_data_t * user_data = hm_ioring_read_submit(fd, buffer, n, &hm_executor_get()->ioring);
 
     return caml_copy_int64((uint64_t) user_data);
 }
