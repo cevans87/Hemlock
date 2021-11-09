@@ -1,5 +1,13 @@
 open Rudiments
 
+external setup: unit -> u64 = "hm_basis_file_setup"
+external teardown: unit -> u64 = "hm_basis_file_setup"
+external user_data_decref: t -> unit = "hm_basis_file_user_data_decref"
+
+(* TODO deal with the errors *)
+let _ = setup ()
+let _ = Stdlib.at_exit (fun () -> let _ = teardown () in ())
+
 module Error = struct
   type t = uns
 
@@ -36,8 +44,6 @@ module Flag = struct
     | RW_O
 end
 
-type t = uns
-
 let bytes_of_slice slice =
   let base = (Bytes.Cursor.index (Bytes.Slice.base slice)) in
   let container = (Bytes.Slice.container slice) in
@@ -47,6 +53,7 @@ let bytes_of_slice slice =
 
 (* external of_path_inner: Flag.t -> uns -> _?bytes >os-> int *)
 external of_path_inner: Flag.t -> uns -> Stdlib.Bytes.t -> sint = "hm_basis_file_of_path_inner"
+type t = uns
 
 let of_path ?(flag=Flag.R_O) ?(mode=0o660L) path =
   let path_bytes = bytes_of_slice path in

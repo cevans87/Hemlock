@@ -9,6 +9,9 @@
 #include <caml/mlvalues.h>
 #include <caml/alloc.h>
 
+#include "executor.h"
+#include "ioring.h"
+
 int flags_of_hemlock_file_flag[] = {
     /* R_O   */ O_RDONLY,
     /* W     */ O_WRONLY | O_CREAT,
@@ -22,6 +25,25 @@ int flags_of_hemlock_file_flag[] = {
     /* RW_C  */ O_RDWR | O_CREAT | O_EXCL,
     /* RW_O  */ O_RDWR,
 };
+
+CAMLprim value
+hm_basis_file_setup(value a_unit) {
+    hm_opt_error_t oe = HM_OE_NONE;
+    HM_OE(oe, hm_executor_setup(hm_executor_get()));
+
+OUT:
+    return caml_copy_int64(oe);
+}
+
+CAMLprim value
+hm_basis_file_teardown(value a_unit) {
+    hm_opt_error_t oe = HM_OE_NONE;
+
+    HM_OE(oe, hm_executor_teardown(hm_executor_get()));
+
+OUT:
+    return caml_copy_int64(oe);
+}
 
 CAMLprim value
 hm_basis_file_error_to_string_get_length(value a_error) {
@@ -131,4 +153,57 @@ hm_basis_file_seek_tl_inner(value a_i, value a_fd) {
     int fd = Int64_val(a_fd);
 
     return hm_basis_file_finalize_result(lseek(fd, i, SEEK_END));
+}
+
+CAMLprim value
+hm_basis_file_generic_complete_inner(value a_user_data) {
+    hm_user_data_t * user_data = (hm_user_data_t *) Int64_val(a_user_data);
+
+    int64_t res = hm_ioring_generic_complete(user_data, &hm_executor_get()->ioring);
+
+    return caml_copy_int64(res);
+}
+
+CAMLprim value
+hm_basis_file_nop_submit_inner(value a_unit) {
+    hm_user_data_t * user_data = hm_ioring_nop_submit(&hm_executor_get()->ioring);
+
+    return caml_copy_int64((uint64_t) user_data);
+}
+
+value
+hm_basis_file_user_data_decref(value a_user_data) {
+    hm_user_data_decref((hm_user_data_t *) Int64_val(a_user_data));
+
+    return Val_unit;
+}
+
+CAMLprim value
+hm_basis_file_user_data_pp(value a_user_data) {
+    hm_user_data_t * user_data = (hm_user_data_t *) Int64_val(a_user_data);
+
+    hm_user_data_pp(STDOUT_FILENO, 0, user_data);
+
+    return Val_unit;
+}
+
+CAMLprim value
+hm_basis_file_cqring_pp(value a_unit) {
+    hm_cqring_pp(STDOUT_FILENO, 0, &hm_executor_get()->ioring.cqring);
+
+    return Val_unit;
+}
+
+CAMLprim value
+hm_basis_file_sqring_pp(value a_unit) {
+    hm_sqring_pp(STDOUT_FILENO, 0, &hm_executor_get()->ioring.sqring);
+
+    return Val_unit;
+}
+
+CAMLprim value
+hm_basis_file_ioring_pp(value a_unit) {
+    hm_ioring_pp(STDOUT_FILENO, 0, &hm_executor_get()->ioring);
+
+    return Val_unit;
 }
