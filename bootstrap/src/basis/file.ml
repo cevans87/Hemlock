@@ -53,8 +53,6 @@ let bytes_of_slice slice =
 
 type t = uns
 
-
-
 (* external stdin_inner: uns *)
 external stdin_inner: unit -> t = "hm_basis_file_stdin_inner"
 
@@ -138,51 +136,76 @@ let close t =
 let close_hlt t =
   Close.(submit t |> complete_hlt)
 
-let read_n = 1024L
+module Read = struct
+  type file = t
+  type t = {
+    t: uns;
+    buffer: Bytes.Slice.t;
+  }
 
-(* external read_inner: !&bytes -> t >os-> int *)
-external read_inner: Stdlib.Bytes.t -> t -> sint = "hm_basis_file_read_inner"
+  let default_n = 1024L
 
-let read_impl buffer t =
-  let base = Bytes.(Cursor.index (Slice.base buffer)) in
-  let bytes = Stdlib.Bytes.create (Int64.to_int (Bytes.Slice.length buffer)) in
-  let value = read_inner bytes t in
-  match Sint.(value < kv 0L) with
-  | true -> Error (Uns.bits_of_sint Sint.(neg value))
-  | false -> begin
-      let range = (base =:< (base + (Uns.bits_of_sint value))) in
-      let container = Bytes.Slice.container buffer in
-      Range.iter range ~f:(fun i ->
-        Array.set_inplace i (U8.of_char (Stdlib.Bytes.get bytes (Int64.to_int (i - base))))
-          container
-      );
-      Ok (Bytes.Slice.init ~range (Bytes.Slice.container buffer))
-    end
+  external submit_inner: uns -> file ->  uns = "hm_basis_file_read_submit_inner"
 
-let read ?(n=read_n) t =
-  let bytes = Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L) in
-  let buffer = Bytes.Slice.init bytes in
-  read_impl buffer t
+  let submit ?n ?buffer file =
+    let n, buffer = begin
+      match n with
+      | None -> begin
+          match buffer with
+          | None -> default_n, Bytes.Slice.init (Array.init (0L =:< default_n)
+            ~f:(fun _ -> Byte.kv 0L))
+          | Some buffer -> Bytes.Slice.length buffer, buffer
+        end
+      | Some n -> begin
+          match buffer with
+          | None -> n, Bytes.Slice.init (Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L))
+          | Some buffer -> (Uns.min n (Bytes.Slice.length buffer)), buffer
+        end
+    end in
+    let t = submit_inner n file in
+    Stdlib.Gc.finalise user_data_decref t;
+    { t; buffer }
+
+  external complete_inner: Stdlib.Bytes.t -> uns -> i64 = "hm_basis_file_read_complete_inner"
+
+  let complete t =
+    let base = Bytes.(Cursor.index (Slice.base t.buffer)) in
+    let bytes = Stdlib.Bytes.create (Int64.to_int (Bytes.Slice.length t.buffer)) in
+    let value = complete_inner bytes t.t in
+    match Sint.(value < kv 0L) with
+    | true -> Error (Uns.bits_of_sint Sint.(neg value))
+    | false -> begin
+        let range = (base =:< (base + (Uns.bits_of_sint value))) in
+        let container = Bytes.Slice.container t.buffer in
+        Range.iter range ~f:(fun i ->
+          Array.set_inplace i (U8.of_char (Stdlib.Bytes.get bytes (Int64.to_int (i - base))))
+            container
+        );
+        Ok (Bytes.Slice.init ~range (Bytes.Slice.container t.buffer))
+      end
+
+  let complete_hlt t =
+    match complete t with
+    | Ok buffer -> buffer
+    | Error error -> halt (Error.to_string error)
+
+end
+
+let read ?n t =
+  Read.(submit ?n t |> complete)
 
 let read_hlt ?n t =
-  match read ?n t with
-  | Ok buffer -> buffer
-  | Error error -> let _ = close_hlt t in halt (Error.to_string error)
+  Read.(submit ?n t |> complete_hlt)
 
 let read_into buffer t =
-  match read_impl buffer t with
+  match Read.(submit ~buffer t |> complete) with
   | Ok _ -> None
   | Error error -> Some error
 
 let read_into_hlt buffer t =
-  match read_into buffer t with
-  | None -> ()
-  | Some error -> begin
-      let _ = close_hlt t in
-      halt (Error.to_string error)
-    end
+  let _ = Read.(submit ~buffer t |> complete_hlt) in
+  ()
 
-(* external write_inner: _?bytes -> t >os-> sint *)
 external write_inner: Stdlib.Bytes.t -> t -> sint = "hm_basis_file_write_inner"
 
 let rec write buffer t =
