@@ -158,7 +158,7 @@ CAMLprim value
 hm_basis_file_open_submit_inner(value a_flag, value a_mode, value a_bytes) {
     size_t flag = Long_val(a_flag);
     size_t mode = Int64_val(a_mode);
-    uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
+    uint8_t * bytes = (uint8_t *)Bytes_val(a_bytes);
     size_t n = caml_string_length(a_bytes);
 
     int flags = flags_of_hemlock_file_flag[flag];
@@ -190,6 +190,20 @@ hm_basis_file_read_submit_inner(value a_n, value a_fd) {
     uint8_t * buffer = (uint8_t *)malloc(sizeof(uint8_t) * n);
 
     hm_user_data_t * user_data = hm_ioring_read_submit(fd, buffer, n, &hm_executor_get()->ioring);
+
+    return caml_copy_int64((uint64_t) user_data);
+}
+
+CAMLprim value
+hm_basis_file_write_submit_inner(value a_bytes, value a_fd) {
+    uint8_t * bytes = (uint8_t *)Bytes_val(a_bytes);
+    size_t n = caml_string_length(a_bytes);
+    int fd = Int64_val(a_fd);
+
+    uint8_t * buffer = (uint8_t *)malloc(sizeof(uint8_t) * n);
+    memcpy(buffer, bytes, n);
+
+    hm_user_data_t * user_data = hm_ioring_write_submit(fd, buffer, n, &hm_executor_get()->ioring);
 
     return caml_copy_int64((uint64_t) user_data);
 }
