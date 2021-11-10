@@ -110,9 +110,27 @@ val read_hlt: ?n:uns -> t -> Bytes.Slice.t
 (** [read_hlt n t] reads up to [n] (default 1024) bytes from [t] into a new buffer and returns the
     buffer or halts if bytes could not be read. *)
 
+module Write: sig
+  type file = t
+  type t
+  (* An internally immutable token backed by an external I/O write completion data structure. *)
+
+  val submit: Bytes.Slice.t -> file -> t
+  (** [submit bytes file] submits a write for of given [bytes] to given [file]. This operation
+      does not block. *)
+
+  val complete: t ->  Error.t option
+  (** [complete t] blocks until the given [t] is complete. Returns None or an error if bytes could
+      not be written. *)
+
+  val complete_hlt: t -> unit
+  (** [complete_hlt t] blocks until the given [t] is complete. Returns a unit or halts if bytes
+      could not be written. *)
+end
+
 (* val write: /_ Bytes.Slice.t -> t $-> Error.t option *)
 val write: Bytes.Slice.t -> t -> Error.t option
-(** [write bytes t] writes [bytes] to [t] and returns None or an error if bytes could not be
+(** [write bytes t] writes [buffer] to [t] and returns None or an error if bytes could not be
     written. *)
 
 (* val write_hlt: /_ Bytes.Slice.t -> t $-> unit *)

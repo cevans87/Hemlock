@@ -53,3 +53,4 @@ hm_user_data_t * hm_ioring_open_submit(uint8_t * pathname, int flags, mode_t mod
   hm_ioring_t * ioring);
 hm_user_data_t * hm_ioring_close_submit(int fd, hm_ioring_t * ioring);
 hm_user_data_t * hm_ioring_read_submit(int fd, uint8_t * buffer, uint64_t n, hm_ioring_t * ioring);
+hm_user_data_t * hm_ioring_write_submit(int fd, uint8_t * buffer, uint64_t n, hm_ioring_t * ioring);

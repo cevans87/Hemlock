@@ -200,31 +200,38 @@ let read_into_hlt buffer t =
   let _ = Read.(submit ~buffer t |> complete_hlt) in
   ()
 
-external write_inner: Stdlib.Bytes.t -> t -> sint = "hm_basis_file_write_inner"
+module Write = struct
+  type file = t
+  type t = uns
 
-let rec write buffer t =
-  match Bytes.Cursor.index (Bytes.Slice.base buffer) < Bytes.Cursor.index (Bytes.Slice.past buffer)
-  with
-  | false -> None
-  | true -> begin
-      let bytes = bytes_of_slice buffer in
-      let value = write_inner bytes t in
-      match Sint.(value < kv 0L) with
-      | true -> Some (Error.of_value value)
-      | false ->
-        write (
-          Bytes.Slice.of_cursors ~base:(Bytes.Cursor.seek value (Bytes.Slice.base buffer))
-            ~past:(Bytes.Slice.base buffer)
-        ) t
-    end
+  external submit_inner: Stdlib.Bytes.t -> file -> t = "hm_basis_file_write_submit_inner"
+
+  let submit buffer file =
+    let bytes = bytes_of_slice buffer in
+    let t = submit_inner bytes file in
+    Stdlib.Gc.finalise user_data_decref t;
+    t
+
+  external complete_inner: t -> i64 = "hm_basis_file_generic_complete_inner"
+
+  let complete t =
+    let value = complete_inner t in
+    match (value < 0L) with
+    | false -> None
+    | true -> Some (Error.of_value value)
+
+  let complete_hlt t =
+    match complete t with
+    | None -> ()
+    | Some error -> halt (Error.to_string error)
+
+end
+
+let write buffer t =
+  Write.(submit buffer t |> complete)
 
 let write_hlt buffer t =
-  match write buffer t with
-  | None -> ()
-  | Some error -> begin
-      let _ = close t in
-      halt (Error.to_string error)
-    end
+  Write.(submit buffer t |> complete_hlt)
 
 let seek_base inner rel_off t =
   let value = inner rel_off t in
