@@ -26,6 +26,7 @@ services:
     build:
       args:
         - HEMLOCK_PRE_PUSH_CLONE_PATH
+        - HEMLOCK_CHECK_OCP_INDENT_BASE_COMMIT
       target: pre-push
     extends: prod
     image: branchtaken/hemlock:pre-push

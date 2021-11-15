@@ -36,14 +36,16 @@ RUN opam init \
 
 FROM --platform=${HEMLOCK_PLATFORM} prod AS pre-push
 ARG HEMLOCK_PRE_PUSH_CLONE_PATH
+ARG HEMLOCK_CHECK_OCP_INDENT_BASE_COMMIT
 USER hemlock
 WORKDIR /home/hemlock/origin
-COPY --chown=hemlock:hemlock ${HEMLOCK_PRE_PUSH_CLONE_PATH}/ .
+COPY --chown=hemlock:hemlock ${HEMLOCK_PRE_PUSH_CLONE_PATH:?required} .
 WORKDIR /home/hemlock/Hemlock
 RUN git clone ~/origin . \
     && opam exec -- dune build \
     && opam exec -- dune runtest \
-    && python3 .github/scripts/check_ocp_indent.py
+    && HEMLOCK_CHECK_OCP_INDENT_BASE_COMMIT=${HEMLOCK_CHECK_OCP_INDENT_BASE_COMMIT:?required} \
+        python3 .github/scripts/check_ocp_indent.py
 
 FROM --platform=${HEMLOCK_PLATFORM} base AS dev
 USER root
