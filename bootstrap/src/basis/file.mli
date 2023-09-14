@@ -171,32 +171,32 @@ val write_hlt: Bytes.Slice.t -> t -> unit
 (** [write_hlt bytes t] writes [bytes] to [t] and returns a [unit] or halts if bytes could not be
     written. *)
 
-val seek: sint -> t -> (uns, Errno.t) result
+val seek: sint -> t -> (t, Errno.t) result
 (** [seek i t] seeks the external mutable Unix file descriptor associated with [t] to point to the
     [i]th byte relative to the current byte position of the file. Returns an [uns] of the new byte
     index relative to the beginning of the file or an [Errno.t] if it could not be changed. *)
 
-val seek_hlt: sint -> t -> uns
+val seek_hlt: sint -> t -> t
 (** [seek_hlt i t] seeks the external mutable Unix file descriptor associated with [t] to point to
     the [i]th byte relative to the current byte position of the file. Returns an [uns] of the new
     byte index relative to the beginning of the file or halts if it could not be changed. *)
 
-val seek_hd: sint -> t -> (uns, Errno.t) result
+val seek_hd: sint -> t -> (t, Errno.t) result
 (** [seek_hd i t] seeks the external mutable Unix file descriptor associated with [t] to point to
     the [i]th byte relative to the head of the file. Returns an [uns] of the new byte index relative
     to the beginning of the file or an [Errno.t] if it could not be changed. *)
 
-val seek_hd_hlt: sint -> t -> uns
+val seek_hd_hlt: sint -> t -> t
 (** [seek_hd_hlt i t] seeks the external mutable Unix file descriptor associated with [t] to point
     to the [i]th byte relative to the head of the file. Returns an [uns] of the new byte index
     relative to the beginning of the file or halts if it could not be changed. *)
 
-val seek_tl: sint -> t -> (uns, Errno.t) result
+val seek_tl: sint -> t -> (t, Errno.t) result
 (** [seek_tl i t] seeks the external mutable Unix file descriptor associated with [t] to point to
     the [i]th byte relative to the tail of the file. Returns an [uns] of the new byte index relative
     to the beginning of the file or an [Errno.t] if it could not be changed. *)
 
-val seek_tl_hlt: sint -> t -> uns
+val seek_tl_hlt: sint -> t -> t
 (** [seek_tl_hlt i t] seeks the external mutable Unix file descriptor associated with [t] to point
     to the [i]th byte relative to the tail of the file. Returns an [uns] of the new byte index
     relative to the beginning of the file or halts if it could not be changed. *)
