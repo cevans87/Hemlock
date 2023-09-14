@@ -13,7 +13,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "ioring.h"
 
 /*
@@ -125,7 +124,7 @@ hemlock_sqe_pp(int fd, int indent, struct io_uring_sqe *sqe) {
             indent, "", sqe->fd
         );
         hemlock_opcode_pp(fd, indent, sqe->opcode);
-        hemlock_user_data_pp(fd, indent, (hemlock_user_data_t *)sqe->user_data);
+        hemlock_ioring_user_data_pp(fd, indent, (hemlock_ioring_user_data_t *)sqe->user_data);
     }
 }
 
@@ -144,23 +143,23 @@ hemlock_cqe_pp(int fd, int indent, struct io_uring_cqe *cqe) {
             indent, "", cqe->flags
         );
         if (cqe->user_data != 0 &&
-          cqe->user_data == ((hemlock_user_data_t *)cqe->user_data)->cqe.user_data) {
+          cqe->user_data == ((hemlock_ioring_user_data_t *)cqe->user_data)->cqe.user_data) {
             dprintf(fd, "%*suser_data: <same as parent>\n", indent, "");
         } else {
-            hemlock_user_data_pp(fd, indent, (hemlock_user_data_t *)cqe->user_data);
+            hemlock_ioring_user_data_pp(fd, indent, (hemlock_ioring_user_data_t *)cqe->user_data);
         }
     }
 }
 
 static bool
-hemlock_user_data_is_complete(hemlock_user_data_t *user_data) {
+hemlock_ioring_user_data_is_complete(hemlock_ioring_user_data_t *user_data) {
     // When the cqe is copied out of the completion queue into this user_data, the cqe's user_data
     // field is a valid pointer (i.e. non-zero).
     return user_data->cqe.user_data != 0;
 }
 
 void
-hemlock_user_data_pp(int fd, int indent, hemlock_user_data_t *user_data) {
+hemlock_ioring_user_data_pp(int fd, int indent, hemlock_ioring_user_data_t *user_data) {
     if (user_data == NULL) {
         dprintf(fd, "%*suser_data: NULL\n", indent, "");
     } else {
@@ -183,7 +182,7 @@ hemlock_user_data_pp(int fd, int indent, hemlock_user_data_t *user_data) {
 }
 
 void
-hemlock_user_data_decref(hemlock_user_data_t *user_data) {
+hemlock_ioring_user_data_decref(hemlock_ioring_user_data_t *user_data) {
     user_data->refcount--;
     if (user_data->refcount == 0) {
         free(user_data);
@@ -218,9 +217,7 @@ hemlock_sqring_pp(int fd, int indent, hemlock_sqring_t *sqring) {
 
         dprintf(fd, "%*s  sqes:\n", indent, "");
         indent += HEMLOCK_INDENT_SIZE;
-        for (
-            unsigned head = HEMLOCK_ATOMIC_LOAD_ACQUIRE(sqring->head); head < *sqring->tail; head++
-        ) {
+        for (unsigned head = HEMLOCK_ATOMIC_LOAD_ACQUIRE(sqring->head); head < *sqring->tail; head++) {
             hemlock_sqe_pp(fd, indent, &sqring->sqes[head & *sqring->ring_mask]);
         }
     }
@@ -247,9 +244,7 @@ hemlock_cqring_pp(int fd, int indent, hemlock_cqring_t *cqring) {
             indent, ""
         );
         indent += HEMLOCK_INDENT_SIZE;
-        for (
-            unsigned head = *cqring->head; head < HEMLOCK_ATOMIC_LOAD_ACQUIRE(cqring->tail); head++
-        ) {
+        for (unsigned head = *cqring->head; head < HEMLOCK_ATOMIC_LOAD_ACQUIRE(cqring->tail); head++) {
             hemlock_cqe_pp(fd, indent, &cqring->cqes[head & *cqring->ring_mask]);
         }
     }
@@ -268,9 +263,9 @@ hemlock_ioring_pp(int fd, int indent, hemlock_ioring_t *ioring) {
     }
 }
 
-hemlock_user_data_t *
-hemlock_user_data_create() {
-    hemlock_user_data_t *user_data = (hemlock_user_data_t *)calloc(1, sizeof(hemlock_user_data_t));
+hemlock_ioring_user_data_t *
+hemlock_ioring_user_data_create() {
+    hemlock_ioring_user_data_t *user_data = (hemlock_ioring_user_data_t *)calloc(1, sizeof(hemlock_ioring_user_data_t));
     assert(user_data != NULL);
 
     // Refs from kernel and ocaml.
@@ -311,14 +306,16 @@ hemlock_ioring_get_sqes_size(hemlock_ioring_t *ioring) {
     return ioring->params.sq_entries * sizeof(struct io_uring_sqe);
 }
 
-hemlock_opt_error_t
+hemlock_ioring_error_t
 hemlock_ioring_setup(hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
-
     memset(ioring, 0, sizeof(*ioring));
-    HEMLOCK_OE_ERRNO_RESULT(
-        oe, ioring->fd, io_uring_setup(HEMLOCK_IORING_ENTRIES, &ioring->params)
-    );
+
+    int res = io_uring_setup(HEMLOCK_IORING_ENTRIES, &ioring->params);
+    if (res < 0) {
+        return (hemlock_ioring_error_t)(-res);
+    }
+
+    ioring->fd = res;
 
     assert(ioring->params.features & IORING_FEAT_SINGLE_MMAP);
     assert(ioring->params.features & IORING_FEAT_RW_CUR_POS);
@@ -349,8 +346,7 @@ hemlock_ioring_setup(hemlock_ioring_t *ioring) {
     hemlock_sqring_setup(ioring->vm, &ioring->params.sq_off, &ioring->sqring);
     hemlock_cqring_setup(ioring->vm, &ioring->params.cq_off, &ioring->cqring);
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
 void
@@ -364,9 +360,8 @@ hemlock_ioring_teardown(hemlock_ioring_t *ioring) {
     memset(ioring, 0, sizeof(hemlock_ioring_t));
 }
 
-static hemlock_opt_error_t
+static hemlock_ioring_error_t
 hemlock_ioring_flush_cqes(uint32_t min_complete, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
     hemlock_cqring_t *cqring = &ioring->cqring;
 
     assert(min_complete <= *cqring->ring_entries);
@@ -374,13 +369,15 @@ hemlock_ioring_flush_cqes(uint32_t min_complete, hemlock_ioring_t *ioring) {
     uint32_t tail = HEMLOCK_ATOMIC_LOAD_ACQUIRE(cqring->tail);
     uint32_t head = *cqring->head;
     if (tail - head < min_complete) {
-        uint32_t n_complete;
-        HEMLOCK_OE(oe, hemlock_ioring_enter(&n_complete, min_complete, ioring));
+        hemlock_ioring_error_t error = hemlock_ioring_enter(min_complete, ioring);
+        if (error != HEMLOCK_IORING_ERROR_NONE) {
+            return error;
+        }
         tail = HEMLOCK_ATOMIC_LOAD_ACQUIRE(cqring->tail);
     }
     for (; head < tail; head++) {
         struct io_uring_cqe *cqe = &cqring->cqes[head & *cqring->ring_mask];
-        hemlock_user_data_t *user_data = (hemlock_user_data_t *)cqe->user_data;
+        hemlock_ioring_user_data_t *user_data = (hemlock_ioring_user_data_t *)cqe->user_data;
         memcpy(&user_data->cqe, cqe, sizeof(struct io_uring_cqe));
         switch (user_data->opcode) {
         case IORING_OP_OPENAT:
@@ -394,121 +391,101 @@ hemlock_ioring_flush_cqes(uint32_t min_complete, hemlock_ioring_t *ioring) {
         default:
             break;
         };
-        hemlock_user_data_decref(user_data);
+        hemlock_ioring_user_data_decref(user_data);
     }
     HEMLOCK_ATOMIC_STORE_RELEASE(cqring->head, head);
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-static hemlock_opt_error_t
+static hemlock_ioring_error_t
 hemlock_ioring_flush_sqes(hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
-    uint32_t n_complete;
-    HEMLOCK_OE(oe, hemlock_ioring_enter(&n_complete, 0, ioring));
-    if (n_complete > 0) {
-        // There are CQEs just sitting in the completion queue. Flush them.
-        HEMLOCK_OE(oe, hemlock_ioring_flush_cqes(0, ioring));
+    hemlock_ioring_error_t error = hemlock_ioring_enter(0, ioring);
+
+    while (error == EBUSY) {
+        error = hemlock_ioring_flush_cqes(1, ioring);
+        if (error != HEMLOCK_IORING_ERROR_NONE) {
+            return error;
+        }
+        error = hemlock_ioring_enter(0, ioring);
     }
 
-LABEL_OUT:
-    return oe;
+    return error;
 }
 
-static hemlock_opt_error_t
+static hemlock_ioring_error_t
 hemlock_ioring_get_sqe(struct io_uring_sqe **sqe, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
 
     hemlock_sqring_t *sqring = &ioring->sqring;
     if (*sqring->tail - HEMLOCK_ATOMIC_LOAD_ACQUIRE(sqring->head) == *sqring->ring_entries) {
-        HEMLOCK_OE(oe, hemlock_ioring_flush_sqes(ioring));
+        hemlock_ioring_error_t error = hemlock_ioring_flush_sqes(ioring);
+        if (error != HEMLOCK_IORING_ERROR_NONE) {
+            return error;
+        }
     }
 
     *sqe = &sqring->sqes[*sqring->tail & *sqring->ring_mask];
     HEMLOCK_ATOMIC_STORE_RELEASE(sqring->tail, *sqring->tail + 1);
     memset(*sqe, 0, sizeof(struct io_uring_sqe));
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_enter(uint32_t *n_complete, uint32_t min_complete, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
-LABEL_OUT:
-    switch (oe) {
-    case EBUSY:
-        // In Hemlock, this is the point at which the actor suspends and requires the executor to
-        // reap CQEs. If the final SQE has IOSQE_IO_LINK set, no other actors may submit I/O on this
-        // ioring until the current actor finishes submitting its chain of SQEs.
-        HEMLOCK_OE(oe, hemlock_ioring_flush_cqes(1, ioring));
-    case HEMLOCK_OE_NONE:
-        HEMLOCK_OE_ERRNO_RESULT(
-          oe,
-          *n_complete,
-          io_uring_enter(ioring->fd, *ioring->sqring.tail -
-            HEMLOCK_ATOMIC_LOAD_ACQUIRE(ioring->sqring.head), min_complete, IORING_ENTER_GETEVENTS)
-        );
-        break;
-    default:
-        break;
+hemlock_ioring_error_t
+hemlock_ioring_enter(uint32_t min_complete, hemlock_ioring_t *ioring) {
+    int res = io_uring_enter(
+            ioring->fd,
+            *ioring->sqring.tail - HEMLOCK_ATOMIC_LOAD_ACQUIRE(ioring->sqring.head),
+            min_complete,
+            IORING_ENTER_GETEVENTS);
+    if (res < 0) {
+        return (hemlock_ioring_error_t)(-res);
     }
+    // res contains the number of CQEs ready to be reaped.
 
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
 int
-hemlock_ioring_user_data_complete(hemlock_user_data_t *user_data, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_user_data_complete(hemlock_ioring_user_data_t *user_data, hemlock_ioring_t *ioring) {
+    hemlock_ioring_error_t error = HEMLOCK_IORING_ERROR_NONE;
 
-    while (!hemlock_user_data_is_complete(user_data)) {
-        HEMLOCK_OE(oe, hemlock_ioring_flush_cqes(1, ioring));
+    while (user_data->cqe.user_data == 0 && error == HEMLOCK_IORING_ERROR_NONE) {
+        error = hemlock_ioring_flush_cqes(1, ioring);
     }
 
-LABEL_OUT:
-    if (oe == HEMLOCK_OE_NONE) {
-        // io_uring_cqe res returns -errno in the res field if there are errors. We do the same.
-        return user_data->cqe.res;
-    } else if (oe == HEMLOCK_OE_ERROR) {
-        // Generic error, but this function returns -errno on failure. Just use the most appropriate
-        // system error.
-        return -EIO;
-    } else {
-        // oe was initialized from errno.
-        return -oe;
-    }
+    return error;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_nop_submit(hemlock_user_data_t **user_data, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_error_t
+hemlock_ioring_nop_submit(hemlock_ioring_user_data_t **user_data, hemlock_ioring_t *ioring) {
     struct io_uring_sqe *sqe;
-    HEMLOCK_OE(oe, hemlock_ioring_get_sqe(&sqe, ioring));
 
-    *user_data = hemlock_user_data_create();
+    hemlock_ioring_error_t error = hemlock_ioring_get_sqe(&sqe, ioring);
+    if (error != HEMLOCK_IORING_ERROR_NONE) {
+        return error;
+    }
+
+    *user_data = hemlock_ioring_user_data_create();
     (*user_data)->opcode = IORING_OP_NOP;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_NOP;
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_open_submit(
-    hemlock_user_data_t **user_data,
-    uint8_t *pathname,
-    int flags,
-    mode_t mode,
-    hemlock_ioring_t *ioring
-) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_error_t
+hemlock_ioring_open_submit(hemlock_ioring_user_data_t **user_data, uint8_t *pathname, int flags,
+  mode_t mode, hemlock_ioring_t *ioring) {
     struct io_uring_sqe *sqe;
-    HEMLOCK_OE(oe, hemlock_ioring_get_sqe(&sqe, ioring));
 
-    *user_data = hemlock_user_data_create();
+    hemlock_ioring_error_t error = hemlock_ioring_get_sqe(&sqe, ioring);
+    if (error != HEMLOCK_IORING_ERROR_NONE) {
+        return error;
+    }
+
+    *user_data = hemlock_ioring_user_data_create();
     (*user_data)->opcode = IORING_OP_OPENAT;
     (*user_data)->pathname = pathname;
 
@@ -519,77 +496,73 @@ hemlock_ioring_open_submit(
     sqe->open_flags = flags;
     sqe->len = mode;
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_close_submit(hemlock_user_data_t **user_data, int fd, hemlock_ioring_t *ioring) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_error_t
+hemlock_ioring_close_submit(hemlock_ioring_user_data_t **user_data, int fd,
+  hemlock_ioring_t *ioring) {
     struct io_uring_sqe *sqe;
-    HEMLOCK_OE(oe, hemlock_ioring_get_sqe(&sqe, ioring));
 
-    *user_data = hemlock_user_data_create();
+    hemlock_ioring_error_t error = hemlock_ioring_get_sqe(&sqe, ioring);
+    if (error != HEMLOCK_IORING_ERROR_NONE) {
+        return error;
+    }
+
+    *user_data = hemlock_ioring_user_data_create();
     (*user_data)->opcode = IORING_OP_CLOSE;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_CLOSE;
     sqe->fd = fd;
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_read_submit(
-    hemlock_user_data_t **user_data,
-    int fd,
-    uint8_t *buffer,
-    uint64_t n,
-    hemlock_ioring_t *ioring
-) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_error_t
+hemlock_ioring_read_submit(hemlock_ioring_user_data_t **user_data, int fd, int64_t offset,
+  uint8_t *buffer, uint64_t n, hemlock_ioring_t *ioring) {
     struct io_uring_sqe *sqe;
-    HEMLOCK_OE(oe, hemlock_ioring_get_sqe(&sqe, ioring));
 
-    *user_data = hemlock_user_data_create();
+    hemlock_ioring_error_t error = hemlock_ioring_get_sqe(&sqe, ioring);
+    if (error != HEMLOCK_IORING_ERROR_NONE) {
+        return error;
+    }
+
+    *user_data = hemlock_ioring_user_data_create();
     (*user_data)->opcode = IORING_OP_READ;
     (*user_data)->buffer = buffer;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_READ;
-    sqe->off = -1;  // Use current file position.
     sqe->fd = fd;
+    sqe->off = offset;
     sqe->addr = (uint64_t)buffer;
     sqe->len = n;
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }
 
-hemlock_opt_error_t
-hemlock_ioring_write_submit(
-    hemlock_user_data_t **user_data,
-    int fd,
-    uint8_t *buffer,
-    uint64_t n,
-    hemlock_ioring_t *ioring
-) {
-    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+hemlock_ioring_error_t
+hemlock_ioring_write_submit(hemlock_ioring_user_data_t **user_data, int fd, int64_t offset,
+  uint8_t *buffer, uint64_t n, hemlock_ioring_t *ioring) {
     struct io_uring_sqe *sqe;
-    HEMLOCK_OE(oe, hemlock_ioring_get_sqe(&sqe, ioring));
 
-    *user_data = hemlock_user_data_create();
+    hemlock_ioring_error_t error = hemlock_ioring_get_sqe(&sqe, ioring);
+    if (error != HEMLOCK_IORING_ERROR_NONE) {
+        return error;
+    }
+
+    *user_data = hemlock_ioring_user_data_create();
     (*user_data)->opcode = IORING_OP_WRITE;
     (*user_data)->buffer = buffer;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_WRITE;
-    sqe->off = -1;  // Use current file position.
+    sqe->off = offset;  // Use current file position.
     sqe->fd = fd;
     sqe->addr = (uint64_t)buffer;
     sqe->len = n;
 
-LABEL_OUT:
-    return oe;
+    return HEMLOCK_IORING_ERROR_NONE;
 }

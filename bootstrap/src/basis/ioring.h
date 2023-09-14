@@ -21,9 +21,13 @@ typedef struct {
 
     // Maximum of two refs. One from OCaml and one from the kernel.
     uint8_t refcount;
-} hemlock_user_data_t;
-void hemlock_user_data_pp(int fd, int indent, hemlock_user_data_t *user_data);
-void hemlock_user_data_decref(hemlock_user_data_t *user_data);
+} hemlock_ioring_user_data_t;
+
+typedef uint64_t hemlock_ioring_error_t;
+static const hemlock_ioring_error_t HEMLOCK_IORING_ERROR_NONE = 0;
+
+void hemlock_ioring_user_data_pp(int fd, int indent, hemlock_ioring_user_data_t *user_data);
+void hemlock_ioring_user_data_decref(hemlock_ioring_user_data_t *user_data);
 
 // Utility type for tracking submission queue mmapped data structure fields.
 typedef struct {
@@ -62,41 +66,18 @@ typedef struct {
     hemlock_cqring_t cqring;
 } hemlock_ioring_t;
 void hemlock_ioring_pp(int fd, int indent, hemlock_ioring_t *ioring);
-hemlock_opt_error_t hemlock_ioring_setup(hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_setup(hemlock_ioring_t *ioring);
 void hemlock_ioring_teardown(hemlock_ioring_t *ioring);
-hemlock_opt_error_t hemlock_ioring_enter(
-    uint32_t *n_complete,
-    uint32_t min_complete,
-    hemlock_ioring_t *ioring
-);
-int hemlock_ioring_user_data_complete(hemlock_user_data_t *user_data, hemlock_ioring_t *ioring);
-hemlock_opt_error_t hemlock_ioring_nop_submit(
-    hemlock_user_data_t **user_data,
-    hemlock_ioring_t *ioring
-);
-hemlock_opt_error_t hemlock_ioring_open_submit(
-    hemlock_user_data_t **user_data,
-    uint8_t *pathname,
-    int flags,
-    mode_t mode,
-    hemlock_ioring_t *ioring
-);
-hemlock_opt_error_t hemlock_ioring_close_submit(
-    hemlock_user_data_t **user_data,
-    int fd,
-    hemlock_ioring_t *ioring
-);
-hemlock_opt_error_t hemlock_ioring_read_submit(
-    hemlock_user_data_t **user_data,
-    int fd,
-    uint8_t *buffer,
-    uint64_t n,
-    hemlock_ioring_t *ioring
-);
-hemlock_opt_error_t hemlock_ioring_write_submit(
-    hemlock_user_data_t **user_data,
-    int fd,
-    uint8_t *buffer,
-    uint64_t n,
-    hemlock_ioring_t *ioring
-);
+hemlock_ioring_error_t hemlock_ioring_enter(uint32_t min_complete, hemlock_ioring_t *ioring);
+int hemlock_ioring_user_data_complete(hemlock_ioring_user_data_t *user_data,
+  hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_nop_submit(hemlock_ioring_user_data_t **user_data,
+  hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_open_submit(hemlock_ioring_user_data_t **user_data,
+  uint8_t *pathname, int flags, mode_t mode, hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_close_submit(hemlock_ioring_user_data_t **user_data, int fd,
+  hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_read_submit(hemlock_ioring_user_data_t **user_data, int fd,
+  int64_t offset, uint8_t *buffer, uint64_t n, hemlock_ioring_t *ioring);
+hemlock_ioring_error_t hemlock_ioring_write_submit(hemlock_ioring_user_data_t **user_data, int fd,
+  int64_t offset, uint8_t *buffer, uint64_t n, hemlock_ioring_t *ioring);
