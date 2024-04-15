@@ -24,7 +24,7 @@ module Fd = struct
 end
 
 module Offset = struct
-  type t = sint
+  type t = uns
 end
 
 module Mode = struct
@@ -47,7 +47,7 @@ end
 
 type t = {
   fd: Fd.t;
-  offset: Offset.t;
+  offset: Offset.t option;
 }
 
 let fd t =
@@ -63,17 +63,17 @@ let bytes_of_slice slice =
 external stdin_inner: unit -> Fd.t = "hemlock_file_stdin"
 
 let stdin =
-  {fd=stdin_inner (); offset=(-1L)}
+  {fd=stdin_inner (); offset=None}
 
 external stdout_inner: unit -> Fd.t = "hemlock_file_stdout"
 
 let stdout =
-  {fd=stdout_inner (); offset=(-1L)}
+  {fd=stdout_inner (); offset=None}
 
 external stderr_inner: unit -> Fd.t = "hemlock_file_stderr"
 
 let stderr =
-  {fd=stderr_inner (); offset=(-1L)}
+  {fd=stderr_inner (); offset=None}
 
 (*external complete_inner: uns -> sint = "hemlock_executor_user_data_complete"*)
 
@@ -81,7 +81,7 @@ module Open = struct
   type file = t
   type t = {
     user_data: UserData.t;
-    offset: Offset.t;
+    offset: Offset.t option;
   }
 
   external submit_inner: Flag.t -> Mode.t -> Stdlib.Bytes.t -> (uns * UserData.t) =
@@ -100,14 +100,14 @@ module Open = struct
         | W_A
         | W_AO
         | RW_A
-        | RW_AO -> -1L
+        | RW_AO -> None
         | R_O
         | W
         | W_C
         | W_O
         | RW
         | RW_C
-        | RW_O -> 0L
+        | RW_O -> Some 0L
       end in 
       Ok {user_data; offset}
     end
@@ -180,37 +180,38 @@ let close_hlt t =
 module Read = struct
   type file = t
   type t = {
-    user_data: UserData.t;
     buffer: Bytes.Slice.t;
+    file: file;
+    user_data: UserData.t;
   }
 
   let default_n = 1024L
 
-  external submit_inner: uns -> Fd.t -> (uns * UserData.t) = "hemlock_file_read_submit"
+  external submit_inner: sint -> Fd.t -> sint -> (uns * UserData.t) = "hemlock_file_read_submit"
 
-  let submit ?n ?buffer file =
-    let n, buffer = begin
-      match n with
-      | None -> begin
-          match buffer with
-          | None -> default_n, Bytes.Slice.init (Array.init (0L =:< default_n)
-            ~f:(fun _ -> Byte.kv 0L))
-          | Some buffer -> Bytes.Slice.length buffer, buffer
-        end
-      | Some n -> begin
-          match buffer with
-          | None -> n, Bytes.Slice.init (Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L))
-          | Some buffer -> (Uns.min n (Bytes.Slice.length buffer)), buffer
-        end
+  let submit buffer file =
+    (*
+    let buffer = begin
+      match buffer with
+      | None -> Bytes.Slice.init (Array.init (0L =:< default_n)
+        ~f:(fun _ -> Byte.kv 0L))
+      | Some buffer -> buffer
     end in
-    let error, user_data = submit_inner n file.fd in
+    *)
+    let n = Bytes.Slice.length buffer in
+    let offset = begin
+      match file.offset with
+      | None -> -1L
+      | Some offset -> offset
+    end in
+    let error, user_data = submit_inner n file.fd offset in
     let user_data = UserData.register_finalizer user_data in
     match Errno.of_uns error with
     | Some errno -> Error errno
-    | None -> Ok {user_data; buffer}
+    | None -> Ok {buffer; file; user_data}
 
-  let submit_hlt ?n ?buffer file =
-    match submit ?n ?buffer file with
+  let submit_hlt buffer file =
+    match submit buffer file with
     | Error errno -> halt (Errno.to_string errno)
     | Ok t -> t
 
@@ -218,40 +219,58 @@ module Read = struct
     "hemlock_file_read_complete"
 
   let complete t =
-    let base = Bytes.(Cursor.index (Slice.base t.buffer)) in
     let bytes = Stdlib.Bytes.create (Int64.to_int (Bytes.Slice.length t.buffer)) in
     let error, n = complete_inner bytes t.user_data in
     match Errno.of_uns error with
     | Some errno -> Error errno
     | None -> begin
+        let base = Bytes.(Cursor.index (Slice.base t.buffer)) in
         let range = (base =:< (base + n)) in
         let container = Bytes.Slice.container t.buffer in
         Range.Uns.iter range ~f:(fun i ->
           Array.set_inplace i (U8.of_char (Stdlib.Bytes.get bytes (Int64.to_int (i - base))))
             container
         );
-        Ok (Bytes.Slice.init ~range (Bytes.Slice.container t.buffer))
+        let _ = Bytes.Slice.init ~range (Bytes.Slice.container t.buffer) in
+        let offset = begin 
+          match t.file.offset with
+          | None -> None
+          | Some offset -> Some (offset + n)
+        end in
+        Ok {fd=t.file.fd; offset=offset}
       end
 
   let complete_hlt t =
     match complete t with
-    | Ok buffer -> buffer
     | Error errno -> halt (Errno.to_string errno)
+    | Ok file -> file
 end
 
-let read ?n ?buffer t =
-  match Read.submit ?n ?buffer t with
+let read_into buffer t =
+  match Read.submit buffer t with
   | Error errno -> Error errno
   | Ok read -> Read.complete read
 
-let read_hlt ?n ?buffer t =
-  Read.(submit_hlt ?n ?buffer t |> complete_hlt)
+let read_into_hlt buffer t =
+  Read.(submit_hlt buffer t |> complete_hlt)
+
+let read ?(n=Read.default_n) t =
+  let buffer = Bytes.Slice.init (Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L)) in
+  match read_into buffer t with
+  | Error errno -> Error errno
+  | Ok t -> Ok (buffer, t)
+
+let read_hlt ~n t =
+  match read ~n t with
+  | Error errno -> halt (Errno.to_string errno)
+  | Ok (buffer, t) -> buffer, t
 
 module Write = struct
   type file = t
   type t = {
-    user_data: UserData.t;
     buffer: Bytes.Slice.t;
+    file: file;
+    user_data: UserData.t;
   }
 
   external submit_inner: Stdlib.Bytes.t -> Fd.t -> Offset.t -> (uns * UserData.t) =
@@ -259,11 +278,16 @@ module Write = struct
 
   let submit buffer file =
     let bytes = bytes_of_slice buffer in
-    let error, user_data = submit_inner bytes file.fd file.offset in
+    let offset = begin
+      match file.offset with
+      | None -> -1L
+      | Some offset -> offset
+    end in
+    let error, user_data = submit_inner bytes file.fd offset in
     let user_data = UserData.register_finalizer user_data in
     match Errno.of_uns error with
     | Some errno -> Error errno
-    | None -> Ok {user_data; buffer}
+    | None -> Ok {buffer; file; user_data}
 
   let submit_hlt buffer file =
     match submit buffer file with
@@ -280,7 +304,7 @@ module Write = struct
         let base = Bytes.(Slice.base t.buffer |> Cursor.seek n) in
         let past = Bytes.Slice.past t.buffer in
         let buffer = Bytes.Slice.of_cursors ~base ~past in
-        Ok buffer
+        Ok (buffer, t.file)
       end
 
   let complete_hlt t =
@@ -289,32 +313,42 @@ module Write = struct
     | Error error -> halt (Errno.to_string error)
 end
 
+let write_once buffer t =
+  match Write.submit buffer t with
+  | Error errno -> Error errno
+  | Ok write -> Write.complete write
+
 let write buffer t =
   let rec f buffer t = begin
     match Bytes.Slice.length buffer = 0L with
-    | true -> None
+    | true -> Ok t
     | false -> begin
         match Write.submit buffer t with
-        | Error error -> Some error
+        | Error errno -> Error errno
         | Ok write -> begin
             match Write.complete write with
-            | Error error -> Some error
-            | Ok buffer -> f buffer t
+            | Error errno -> Error errno
+            | Ok (buffer, t) -> f buffer t
           end
       end
   end in
   f buffer t
 
 let write_hlt buffer t =
-  let rec f buffer t = begin
+  let rec f (buffer, t) = begin
     match Bytes.Slice.length buffer = 0L with
-    | true -> ()
-    | false -> f Write.(submit_hlt buffer t |> complete_hlt) t
+    | true -> t
+    | false -> Write.(submit_hlt buffer t |> complete_hlt) |> f
   end in
-  f buffer t
+  f (buffer, t)
 
 let seek offset t =
-  Ok {fd=t.fd; offset=t.offset + offset}
+  let offset = begin
+    match t.offset with
+    | None -> offset
+    | Some offset' -> offset + offset'
+  end in
+  Ok {fd=t.fd; offset=Some offset}
 
 let seek_hlt offset t = 
   match seek offset t with
@@ -322,7 +356,7 @@ let seek_hlt offset t =
   | Ok t -> t
 
 let seek_hd offset t =
-  Ok {fd=t.fd; offset=offset}
+  Ok {fd=t.fd; offset=Some offset}
 
 let seek_hd_hlt offset t = 
   match seek_hd offset t with
@@ -330,7 +364,7 @@ let seek_hd_hlt offset t =
   | Ok t -> t
 
 let seek_tl offset t =
-  Ok {fd=t.fd; offset=offset - 1L}
+  Ok {fd=t.fd; offset=Some offset}
 
 let seek_tl_hlt offset t = 
   match seek_tl offset t with
@@ -345,13 +379,19 @@ module Stream = struct
     let f file = begin
       match read file with
       | Error _ -> None
-      | Ok buffer -> begin
-          match (Bytes.Slice.length buffer) > 0L with
+      | Ok (buffer, file) -> begin
+          match Bytes.Slice.length buffer > 0L with
           | false -> begin
               let _ = close file in
               None
             end
-          | true -> Some (buffer, file)
+          | true -> begin
+            let offset = match file.offset with
+            | None -> None
+            | Some offset -> Some(offset + Uns.bits_of_sint (Bytes.Slice.length buffer))
+            in
+            Some (buffer, {fd=file.fd; offset=offset})
+          end
         end
     end in
     Stream.init_indef file ~f
@@ -363,7 +403,13 @@ module Stream = struct
       | Stream.Cons(buffer, t') -> begin
           match write buffer file with
           | Some error -> Some error
-          | None -> fn file t'
+          | None -> begin
+            let offset = match file.offset with
+            | None -> None
+            | Some offset -> Some(offset + Uns.bits_of_sint (Bytes.Slice.length buffer))
+            in
+            fn {fd=file.fd; offset=offset} t'
+          end 
         end
     end in
     fn file t
@@ -374,7 +420,11 @@ module Stream = struct
       | Stream.Nil -> ()
       | Stream.Cons(buffer, t') -> begin
           write_hlt buffer file;
-          fn file t'
+          let offset = match file.offset with
+          | None -> None
+          | Some offset -> Some(offset + Bytes.Slice.length buffer)
+          in
+          fn {fd=file.fd; offset=offset} t'
         end
     end in
     fn file t

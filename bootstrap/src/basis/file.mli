@@ -100,37 +100,41 @@ module Read: sig
   type t
   (* An internally immutable token backed by an external I/O read completion data structure. *)
 
-  val submit: ?n:uns -> ?buffer:Bytes.Slice.t -> file -> (t, Errno.t) result
+  val submit: Bytes.Slice.t -> file -> (t, Errno.t) result
   (** [submit ?n ?buffer file] submits a read for given [file]. If given, [n] is the maximum read
       size and 1024 otherwise. If given, [buffer] is where read bytes are stored and the maximum
       read size is the minumum of [n] and the size of [buffer]. If [buffer] is not given, one will
       be created with size [n]. This operation does not block. Returns a [t] to the read submission
       or an [Errno.t] if the read could not be submitted. *)
 
-  val submit_hlt: ?n:uns -> ?buffer:Bytes.Slice.t -> file -> t
+  val submit_hlt: Bytes.Slice.t -> file -> t
   (** [submit n buffer file] submits a read for given [file]. If given, [n] is the maximum read size
       and 1024 otherwise. If given, [buffer] is where read bytes are stored and the maximum read
       size is the minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be
       created with size [n]. This operation does not block. Returns a [t] to the read submission or
       halts if the read could not be submitted. *)
 
-  val complete: t -> (Bytes.Slice.t, Errno.t) result
+  val complete: t -> (file, Errno.t) result
   (** [complete t] blocks until the given [t] is complete. Returns the buffer into which bytes were
       read or an error if bytes could not be read. *)
 
-  val complete_hlt: t -> Bytes.Slice.t
+  val complete_hlt: t -> file
   (** [complete_hlt t] blocks until the given [t] is complete. Returns the buffer into which bytes
       were read or halts if bytes could not be read. *)
 end
 
-val read: ?n:uns -> ?buffer:Bytes.Slice.t -> t -> (Bytes.Slice.t, Errno.t) result
+val read_into: Bytes.Slice.t -> t -> (t, Errno.t) result
+
+val read_into_hlt: Bytes.Slice.t -> t -> t
+
+val read: ?n:uns -> t -> ((Bytes.Slice.t * t), Errno.t) result
 (** [read ?n ?buffer t] reads from given [t]. If given, [n] is the maximum read size and 1024
     otherwise. If given, [buffer] is where read bytes are stored and the maximum read size is the
     minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be created with size
     [n]. Returns the [Bytes.Slice.t] into which bytes were read or an [Errno.t] if bytes could not
     be read. *)
 
-val read_hlt: ?n:uns -> ?buffer:Bytes.Slice.t -> t -> Bytes.Slice.t
+val read_hlt: ?n:uns -> t -> (Bytes.Slice.t * t)
 (** [read_hlt ?n ?buffer t] reads from given [t]. If given, [n] is the maximum read size and 1024
     otherwise. If given, [buffer] is where read bytes are stored and the maximum read size is the
     minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be created with size
@@ -152,24 +156,28 @@ module Write: sig
       does not block. Returns a [t] to the write submission or halts if the write could not be
       submitted. *)
 
-  val complete: t ->  (Bytes.Slice.t, Errno.t) result
+  val complete: t ->  ((Bytes.Slice.t * file), Errno.t) result
   (** [complete t] blocks until the given [t] is complete. Returns a [Bytes.Slice.t] of remaining
       bytes that were not written (typically empty) or an [Errno.t] if bytes could not be written.
   *)
 
-  val complete_hlt: t -> Bytes.Slice.t
+  val complete_hlt: t -> (Bytes.Slice.t * file)
   (** [complete_hlt t] blocks until the given [t] is complete. Returns a [Bytes.Slice.t] of
       remaining bytes that were not written (typically empty) or halts if bytes could not be
       written. *)
 end
 
-val write: Bytes.Slice.t -> t -> Errno.t option
+val write_once: Bytes.Slice.t -> t -> ((Bytes.Slice.t * t), Errno.t) result
 (** [write bytes t] writes [bytes] to [t] and returns [None] or an [Errno.t] if bytes could not be
     written. *)
 
-val write_hlt: Bytes.Slice.t -> t -> unit
+val write_once_hlt: Bytes.Slice.t -> t -> (Bytes.Slice.t * t)
 (** [write_hlt bytes t] writes [bytes] to [t] and returns a [unit] or halts if bytes could not be
     written. *)
+
+val write: Bytes.Slice.t -> t -> (t, Errno.t) result
+
+val write_hlt: Bytes.Slice.t -> t -> t
 
 val seek: sint -> t -> (t, Errno.t) result
 (** [seek i t] seeks the external mutable Unix file descriptor associated with [t] to point to the
@@ -210,11 +218,11 @@ module Stream : sig
   (** [of_file file] takes a [file] and returns a [t], a lazily initialized buffer stream that reads
       subsequent chunks of [file] into buffers when forced. *)
 
-  val write: file -> t -> Errno.t option
+  val write: file -> t -> (t, Errno.t) result
   (** [write file t] takes an open [file] with write permissions and writes, in order, all buffers
       from [t] to it. Returns an error if not all bytes could be written. *)
 
-  val write_hlt: file -> t -> unit
+  val write_hlt: file -> t -> t
   (** [write_hlt file t] takes an open [file] with write permissions and writes, in order, all
       buffers from [t] to it. Halts if not all bytes could be written. *)
 end

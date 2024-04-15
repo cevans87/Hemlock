@@ -126,7 +126,7 @@ hemlock_file_close_submit(value a_fd) {
     return hemlock_executor_submit_out(error, user_data);
 }
 
-// hemlock_file_read_submit: uns -> Basis.File.t >{os}-> (int * &Basis.File.Read.inner)
+// hemlock_file_read_submit: uns -> Basis.File.t -> Basis.File.Offset.t >{os}-> (int * &Basis.File.Read.inner)
 CAMLprim value
 hemlock_file_read_submit(value a_n, value a_fd, value a_offset) {
     uint64_t n = Int64_val(a_n);
