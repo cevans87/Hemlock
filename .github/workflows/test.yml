@@ -1,17 +1,19 @@
 name: Test
 
-on: pull_request
+#on: pull_request
+on: push
 
 jobs:
   run:
     name: Test
+    #runs-on: ubuntu-24.04
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@main
-    - name: check-commit-status
+    - name: docker_compose_build_tested
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         HM_PUSH_SHA: ${{ github.event.pull_request.head.sha }}
         OWNER: ${{ github.repository_owner }}
         REPO: ${{ github.event.repository.name }}
-      run: python3 .github/scripts/check_commit_status.py
+      run: docker compose build tested
