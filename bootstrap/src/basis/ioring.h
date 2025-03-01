@@ -9,7 +9,7 @@ typedef struct {
     struct io_uring_cqe cqe;
     union {
         // For `read` or `write` operations.
-        uint8_t *buffer;
+        uint8_t *buf;
 
         // For `open` operation.
         uint8_t *pathname;
@@ -89,14 +89,14 @@ hemlock_opt_error_t hemlock_ioring_close_submit(
 hemlock_opt_error_t hemlock_ioring_read_submit(
     hemlock_user_data_t **user_data,
     int fd,
-    uint8_t *buffer,
+    uint8_t *buf,
     uint64_t n,
     hemlock_ioring_t *ioring
 );
 hemlock_opt_error_t hemlock_ioring_write_submit(
     hemlock_user_data_t **user_data,
     int fd,
-    uint8_t *buffer,
+    uint8_t *buf,
     uint64_t n,
     hemlock_ioring_t *ioring
 );

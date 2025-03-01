@@ -100,19 +100,19 @@ module Read: sig
   type t
   (* An internally immutable token backed by an external I/O read completion data structure. *)
 
-  val submit: ?n:uns -> ?buffer:Bytes.Slice.t -> file -> (t, Errno.t) result
-  (** [submit ?n ?buffer file] submits a read for given [file]. If given, [n] is the maximum read
-      size and 1024 otherwise. If given, [buffer] is where read bytes are stored and the maximum
-      read size is the minumum of [n] and the size of [buffer]. If [buffer] is not given, one will
-      be created with size [n]. This operation does not block. Returns a [t] to the read submission
-      or an [Errno.t] if the read could not be submitted. *)
+  val submit: ?n:uns -> ?buf:Bytes.Slice.t -> file -> (t, Errno.t) result
+  (** [submit ?n ?buf file] submits a read for given [file]. If given, [n] is the maximum read size
+      and 1024 otherwise. If given, [buf] is where read bytes are stored and the maximum read size
+      is the minumum of [n] and the size of [buf]. If [buf] is not given, one will be created with
+      size [n]. This operation does not block. Returns a [t] to the read submission or an [Errno.t]
+      if the read could not be submitted. *)
 
-  val submit_hlt: ?n:uns -> ?buffer:Bytes.Slice.t -> file -> t
-  (** [submit n buffer file] submits a read for given [file]. If given, [n] is the maximum read size
-      and 1024 otherwise. If given, [buffer] is where read bytes are stored and the maximum read
-      size is the minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be
-      created with size [n]. This operation does not block. Returns a [t] to the read submission or
-      halts if the read could not be submitted. *)
+  val submit_hlt: ?n:uns -> ?buf:Bytes.Slice.t -> file -> t
+  (** [submit n buf file] submits a read for given [file]. If given, [n] is the maximum read size
+      and 1024 otherwise. If given, [buf] is where read bytes are stored and the maximum read size
+      is the minumum of [n] and the size of [buf]. If [buf] is not given, one will be created with
+      size [n]. This operation does not block. Returns a [t] to the read submission or halts if the
+      read could not be submitted. *)
 
   val complete: t -> (Bytes.Slice.t, Errno.t) result
   (** [complete t] blocks until the given [t] is complete. Returns the buffer into which bytes were
@@ -123,19 +123,18 @@ module Read: sig
       were read or halts if bytes could not be read. *)
 end
 
-val read: ?n:uns -> ?buffer:Bytes.Slice.t -> t -> (Bytes.Slice.t, Errno.t) result
-(** [read ?n ?buffer t] reads from given [t]. If given, [n] is the maximum read size and 1024
-    otherwise. If given, [buffer] is where read bytes are stored and the maximum read size is the
-    minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be created with size
-    [n]. Returns the [Bytes.Slice.t] into which bytes were read or an [Errno.t] if bytes could not
-    be read. *)
+val read: ?n:uns -> ?buf:Bytes.Slice.t -> t -> (Bytes.Slice.t, Errno.t) result
+(** [read ?n ?buf t] reads from given [t]. If given, [n] is the maximum read size and 1024
+    otherwise. If given, [buf] is where read bytes are stored and the maximum read size is the
+    minumum of [n] and the size of [buf]. If [buf] is not given, one will be created with size [n].
+    Returns the [Bytes.Slice.t] into which bytes were read or an [Errno.t] if bytes could not be
+    read. *)
 
-val read_hlt: ?n:uns -> ?buffer:Bytes.Slice.t -> t -> Bytes.Slice.t
-(** [read_hlt ?n ?buffer t] reads from given [t]. If given, [n] is the maximum read size and 1024
-    otherwise. If given, [buffer] is where read bytes are stored and the maximum read size is the
-    minumum of [n] and the size of [buffer]. If [buffer] is not given, one will be created with size
-    [n]. Returns the [Bytes.Slice.t] into which bytes were read or halts if bytes could not be read.
-*)
+val read_hlt: ?n:uns -> ?buf:Bytes.Slice.t -> t -> Bytes.Slice.t
+(** [read_hlt ?n ?buf t] reads from given [t]. If given, [n] is the maximum read size and 1024
+    otherwise. If given, [buf] is where read bytes are stored and the maximum read size is the
+    minumum of [n] and the size of [buf]. If [buf] is not given, one will be created with size [n].
+    Returns the [Bytes.Slice.t] into which bytes were read or halts if bytes could not be read. *)
 
 module Write: sig
   type file = t

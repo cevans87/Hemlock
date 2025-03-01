@@ -140,36 +140,36 @@ module Read = struct
   type inner = uns
   type t = {
     inner: inner;
-    buffer: Bytes.Slice.t;
+    buf: Bytes.Slice.t;
   }
 
   let default_n = 1024L
 
   external submit_inner: uns -> file -> (sint * inner) = "hemlock_basis_file_read_submit_inner"
 
-  let submit ?n ?buffer file =
-    let n, buffer = begin
+  let submit ?n ?buf file =
+    let n, buf = begin
       match n with
       | None -> begin
-          match buffer with
+          match buf with
           | None -> default_n, Bytes.Slice.init (Array.init (0L =:< default_n)
             ~f:(fun _ -> Byte.kv 0L))
-          | Some buffer -> Bytes.Slice.length buffer, buffer
+          | Some buf -> Bytes.Slice.length buf, buf
         end
       | Some n -> begin
-          match buffer with
+          match buf with
           | None -> n, Bytes.Slice.init (Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L))
-          | Some buffer -> (Uns.min n (Bytes.Slice.length buffer)), buffer
+          | Some buf -> (Uns.min n (Bytes.Slice.length buf)), buf
         end
     end in
     let value, inner = submit_inner n file in
     let inner = register_user_data_finalizer inner in
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
-    | false -> Ok {inner; buffer}
+    | false -> Ok {inner; buf}
 
-  let submit_hlt ?n ?buffer file =
-    match submit ?n ?buffer file with
+  let submit_hlt ?n ?buf file =
+    match submit ?n ?buf file with
     | Error error -> halt (Errno.to_string error)
     | Ok t -> t
 
@@ -177,56 +177,56 @@ module Read = struct
     "hemlock_basis_file_read_complete_inner"
 
   let complete t =
-    let base = Bytes.(Cursor.index (Slice.base t.buffer)) in
-    let bytes = Stdlib.Bytes.create (Int64.to_int (Bytes.Slice.length t.buffer)) in
+    let base = Bytes.(Cursor.index (Slice.base t.buf)) in
+    let bytes = Stdlib.Bytes.create (Int64.to_int (Bytes.Slice.length t.buf)) in
     let value = complete_inner bytes t.inner in
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
     | false -> begin
         let range = (base =:< (base + (Uns.bits_of_sint value))) in
-        let container = Bytes.Slice.container t.buffer in
+        let container = Bytes.Slice.container t.buf in
         Range.Uns.iter range ~f:(fun i ->
           Array.set_inplace i (U8.of_char (Stdlib.Bytes.get bytes (Int64.to_int (i - base))))
             container
         );
-        Ok (Bytes.Slice.init ~range (Bytes.Slice.container t.buffer))
+        Ok (Bytes.Slice.init ~range (Bytes.Slice.container t.buf))
       end
 
   let complete_hlt t =
     match complete t with
-    | Ok buffer -> buffer
+    | Ok buf -> buf
     | Error error -> halt (Errno.to_string error)
 end
 
-let read ?n ?buffer t =
-  match Read.submit ?n ?buffer t with
+let read ?n ?buf t =
+  match Read.submit ?n ?buf t with
   | Error error -> Error error
   | Ok read -> Read.complete read
 
-let read_hlt ?n ?buffer t =
-  Read.(submit_hlt ?n ?buffer t |> complete_hlt)
+let read_hlt ?n ?buf t =
+  Read.(submit_hlt ?n ?buf t |> complete_hlt)
 
 module Write = struct
   type file = t
   type inner = uns
   type t = {
     inner: inner;
-    buffer: Bytes.Slice.t;
+    buf: Bytes.Slice.t;
   }
 
   external submit_inner: Stdlib.Bytes.t -> file -> (sint * inner) =
     "hemlock_basis_file_write_submit_inner"
 
-  let submit buffer file =
-    let bytes = bytes_of_slice buffer in
+  let submit buf file =
+    let bytes = bytes_of_slice buf in
     let value, inner = submit_inner bytes file in
     let inner = register_user_data_finalizer inner in
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
-    | false -> Ok {inner; buffer}
+    | false -> Ok {inner; buf}
 
-  let submit_hlt buffer file =
-    match submit buffer file with
+  let submit_hlt buf file =
+    match submit buf file with
     | Error error -> halt (Errno.to_string error)
     | Ok t -> t
 
@@ -235,41 +235,41 @@ module Write = struct
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
     | false -> begin
-        let base = Bytes.(Slice.base t.buffer |> Cursor.seek (Uns.bits_of_sint value)) in
-        let past = Bytes.Slice.past t.buffer in
-        let buffer = Bytes.Slice.of_cursors ~base ~past in
-        Ok buffer
+        let base = Bytes.(Slice.base t.buf |> Cursor.seek (Uns.bits_of_sint value)) in
+        let past = Bytes.Slice.past t.buf in
+        let buf = Bytes.Slice.of_cursors ~base ~past in
+        Ok buf
       end
 
   let complete_hlt t =
     match complete t with
-    | Ok buffer -> buffer
+    | Ok buf -> buf
     | Error error -> halt (Errno.to_string error)
 end
 
-let write buffer t =
-  let rec f buffer t = begin
-    match Bytes.Slice.length buffer = 0L with
+let write buf t =
+  let rec f buf t = begin
+    match Bytes.Slice.length buf = 0L with
     | true -> None
     | false -> begin
-        match Write.submit buffer t with
+        match Write.submit buf t with
         | Error error -> Some error
         | Ok write -> begin
             match Write.complete write with
             | Error error -> Some error
-            | Ok buffer -> f buffer t
+            | Ok buf -> f buf t
           end
       end
   end in
-  f buffer t
+  f buf t
 
-let write_hlt buffer t =
-  let rec f buffer t = begin
-    match Bytes.Slice.length buffer = 0L with
+let write_hlt buf t =
+  let rec f buf t = begin
+    match Bytes.Slice.length buf = 0L with
     | true -> ()
-    | false -> f Write.(submit_hlt buffer t |> complete_hlt) t
+    | false -> f Write.(submit_hlt buf t |> complete_hlt) t
   end in
-  f buffer t
+  f buf t
 
 let seek_base inner rel_off t =
   let value = inner rel_off t in
@@ -311,13 +311,13 @@ module Stream = struct
     let f file = begin
       match read file with
       | Error _ -> None
-      | Ok buffer -> begin
-          match (Bytes.Slice.length buffer) > 0L with
+      | Ok buf -> begin
+          match (Bytes.Slice.length buf) > 0L with
           | false -> begin
               let _ = close file in
               None
             end
-          | true -> Some (buffer, file)
+          | true -> Some (buf, file)
         end
     end in
     Stream.init_indef file ~f
@@ -326,8 +326,8 @@ module Stream = struct
     let rec fn file t = begin
       match Lazy.force t with
       | Stream.Nil -> None
-      | Stream.Cons(buffer, t') -> begin
-          match write buffer file with
+      | Stream.Cons(buf, t') -> begin
+          match write buf file with
           | Some error -> Some error
           | None -> fn file t'
         end
@@ -338,8 +338,8 @@ module Stream = struct
     let rec fn file t = begin
       match Lazy.force t with
       | Stream.Nil -> ()
-      | Stream.Cons(buffer, t') -> begin
-          write_hlt buffer file;
+      | Stream.Cons(buf, t') -> begin
+          write_hlt buf file;
           fn file t'
         end
     end in

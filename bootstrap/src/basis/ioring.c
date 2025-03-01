@@ -388,8 +388,8 @@ hemlock_ioring_flush_cqes(uint32_t min_complete, hemlock_ioring_t *ioring) {
             user_data->pathname = NULL;
             break;
         case IORING_OP_WRITE:
-            free(user_data->buffer);
-            user_data->buffer = NULL;
+            free(user_data->buf);
+            user_data->buf = NULL;
             break;
         default:
             break;
@@ -544,7 +544,7 @@ hemlock_opt_error_t
 hemlock_ioring_read_submit(
     hemlock_user_data_t **user_data,
     int fd,
-    uint8_t *buffer,
+    uint8_t *buf,
     uint64_t n,
     hemlock_ioring_t *ioring
 ) {
@@ -554,13 +554,13 @@ hemlock_ioring_read_submit(
 
     *user_data = hemlock_user_data_create();
     (*user_data)->opcode = IORING_OP_READ;
-    (*user_data)->buffer = buffer;
+    (*user_data)->buf = buf;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_READ;
     sqe->off = -1;  // Use current file position.
     sqe->fd = fd;
-    sqe->addr = (uint64_t)buffer;
+    sqe->addr = (uint64_t)buf;
     sqe->len = n;
 
 LABEL_OUT:
@@ -571,7 +571,7 @@ hemlock_opt_error_t
 hemlock_ioring_write_submit(
     hemlock_user_data_t **user_data,
     int fd,
-    uint8_t *buffer,
+    uint8_t *buf,
     uint64_t n,
     hemlock_ioring_t *ioring
 ) {
@@ -581,13 +581,13 @@ hemlock_ioring_write_submit(
 
     *user_data = hemlock_user_data_create();
     (*user_data)->opcode = IORING_OP_WRITE;
-    (*user_data)->buffer = buffer;
+    (*user_data)->buf = buf;
 
     sqe->user_data = (uint64_t)(*user_data);
     sqe->opcode = IORING_OP_WRITE;
     sqe->off = -1;  // Use current file position.
     sqe->fd = fd;
-    sqe->addr = (uint64_t)buffer;
+    sqe->addr = (uint64_t)buf;
     sqe->len = n;
 
 LABEL_OUT:

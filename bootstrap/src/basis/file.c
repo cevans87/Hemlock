@@ -90,7 +90,7 @@ hemlock_basis_file_read_complete_inner(value a_bytes, value a_user_data) {
 
     if (res >= 0) {
         uint8_t *bytes = (uint8_t *)Bytes_val(a_bytes);
-        memcpy(bytes, user_data->buffer, res);
+        memcpy(bytes, user_data->buf, res);
     }
 
     return caml_copy_int64(res);
@@ -116,7 +116,7 @@ hemlock_basis_file_open_submit_inner(value a_flag, value a_mode, value a_bytes) 
 
     hemlock_user_data_t *user_data = NULL;
     HEMLOCK_OE(
-        oe, 
+        oe,
         hemlock_ioring_open_submit(
             &user_data, pathname, flags, mode, &hemlock_executor_get()->ioring
         )
@@ -146,14 +146,14 @@ hemlock_basis_file_read_submit_inner(value a_n, value a_fd) {
     uint64_t n = Int64_val(a_n);
     int fd = Int64_val(a_fd);
 
-    uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * n);
-    assert(buffer != NULL);
+    uint8_t *buf = (uint8_t *)malloc(sizeof(uint8_t) * n);
+    assert(buf != NULL);
 
     hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
 
     hemlock_user_data_t *user_data = NULL;
     HEMLOCK_OE(
-        oe, hemlock_ioring_read_submit(&user_data, fd, buffer, n, &hemlock_executor_get()->ioring)
+        oe, hemlock_ioring_read_submit(&user_data, fd, buf, n, &hemlock_executor_get()->ioring)
     );
 
 LABEL_OUT:
@@ -169,13 +169,13 @@ hemlock_basis_file_write_submit_inner(value a_bytes, value a_fd) {
     size_t n = caml_string_length(a_bytes);
     int fd = Int64_val(a_fd);
 
-    uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * n);
-    assert(buffer != NULL);
-    memcpy(buffer, bytes, n);
+    uint8_t *buf = (uint8_t *)malloc(sizeof(uint8_t) * n);
+    assert(buf != NULL);
+    memcpy(buf, bytes, n);
 
     hemlock_user_data_t *user_data = NULL;
     HEMLOCK_OE(
-        oe, hemlock_ioring_write_submit(&user_data, fd, buffer, n, &hemlock_executor_get()->ioring)
+        oe, hemlock_ioring_write_submit(&user_data, fd, buf, n, &hemlock_executor_get()->ioring)
     );
 
 LABEL_OUT:
