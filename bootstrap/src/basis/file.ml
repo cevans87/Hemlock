@@ -147,29 +147,29 @@ module Read = struct
 
   external submit_inner: uns -> file -> (sint * inner) = "hemlock_basis_file_read_submit_inner"
 
-  let submit ?n ?buf file =
-    let n, buf = begin
-      match n with
+  let submit ?count ?buf file =
+    let count, buf = begin
+      match count with
       | None -> begin
           match buf with
           | None -> default_n, Bytes.Slice.init (Array.init (0L =:< default_n)
             ~f:(fun _ -> Byte.kv 0L))
           | Some buf -> Bytes.Slice.length buf, buf
         end
-      | Some n -> begin
+      | Some count -> begin
           match buf with
-          | None -> n, Bytes.Slice.init (Array.init (0L =:< n) ~f:(fun _ -> Byte.kv 0L))
-          | Some buf -> (Uns.min n (Bytes.Slice.length buf)), buf
+          | None -> count, Bytes.Slice.init (Array.init (0L =:< count) ~f:(fun _ -> Byte.kv 0L))
+          | Some buf -> (Uns.min count (Bytes.Slice.length buf)), buf
         end
     end in
-    let value, inner = submit_inner n file in
+    let value, inner = submit_inner count file in
     let inner = register_user_data_finalizer inner in
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
     | false -> Ok {inner; buf}
 
-  let submit_hlt ?n ?buf file =
-    match submit ?n ?buf file with
+  let submit_hlt ?count ?buf file =
+    match submit ?count ?buf file with
     | Error error -> halt (Errno.to_string error)
     | Ok t -> t
 
@@ -198,13 +198,13 @@ module Read = struct
     | Error error -> halt (Errno.to_string error)
 end
 
-let read ?n ?buf t =
-  match Read.submit ?n ?buf t with
+let read ?count ?buf t =
+  match Read.submit ?count ?buf t with
   | Error error -> Error error
   | Ok read -> Read.complete read
 
-let read_hlt ?n ?buf t =
-  Read.(submit_hlt ?n ?buf t |> complete_hlt)
+let read_hlt ?count ?buf t =
+  Read.(submit_hlt ?count ?buf t |> complete_hlt)
 
 module Write = struct
   type file = t

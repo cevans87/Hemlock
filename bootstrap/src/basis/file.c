@@ -142,18 +142,18 @@ LABEL_OUT:
 
 // hemlock_basis_file_read_submit_inner: uns -> Basis.File.t >{os}-> (int * &Basis.File.Read.inner)
 CAMLprim value
-hemlock_basis_file_read_submit_inner(value a_n, value a_fd) {
-    uint64_t n = Int64_val(a_n);
+hemlock_basis_file_read_submit_inner(value a_count, value a_fd) {
+    uint64_t count = Int64_val(a_count);
     int fd = Int64_val(a_fd);
 
-    uint8_t *buf = (uint8_t *)malloc(sizeof(uint8_t) * n);
+    uint8_t *buf = (uint8_t *)malloc(sizeof(uint8_t) * count);
     assert(buf != NULL);
 
     hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
 
     hemlock_user_data_t *user_data = NULL;
     HEMLOCK_OE(
-        oe, hemlock_ioring_read_submit(&user_data, fd, buf, n, &hemlock_executor_get()->ioring)
+        oe, hemlock_ioring_read_submit( &user_data, fd, buf, count, &hemlock_executor_get()->ioring)
     );
 
 LABEL_OUT:
