@@ -1,3 +1,5 @@
+#define _LARGEFILE64_SOURCE // For O_LARGEFILE
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -15,6 +17,31 @@
 #include "common.h"
 #include "executor.h"
 #include "ioring.h"
+
+CAMLprim value
+hemlock_basis_file_open_flags_init(value a_i) {
+    switch Int64_val(a_i) {
+        case 0: return caml_copy_int64(O_APPEND);
+        case 1: return caml_copy_int64(O_ASYNC);
+        case 2: return caml_copy_int64(O_CLOEXEC);
+        case 3: return caml_copy_int64(O_CREAT);
+        //case 4: return caml_copy_int64(O_DIRECT);
+        case 5: return caml_copy_int64(O_DIRECTORY);
+        case 6: return caml_copy_int64(O_DSYNC);
+        case 7: return caml_copy_int64(O_EXCL);
+        case 8: return caml_copy_int64(O_LARGEFILE);
+        //case 9: return caml_copy_int64(O_NOATIME);
+        case 10: return caml_copy_int64(O_NOCTTY);
+        case 11: return caml_copy_int64(O_NOFOLLOW);
+        case 12: return caml_copy_int64(O_NONBLOCK);
+        case 13: return caml_copy_int64(O_NDELAY);
+        //case 14: return caml_copy_int64(O_PATH);
+        case 15: return caml_copy_int64(O_SYNC);
+        //case 16: return caml_copy_int64(O_TMPFILE);
+        case 17: return caml_copy_int64(O_TRUNC);
+        default: assert(false);
+    };
+}
 
 int flags_of_hemlock_file_flag[] = {
     /* R_O   */ O_RDONLY,

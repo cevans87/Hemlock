@@ -34,11 +34,72 @@ module Open: sig
   type t
   (* An internally immutable token backed by an external I/O open completion data structure. *)
 
+  module Flag2: sig
+    type t =
+      | O_APPEND
+      | O_ASYNC
+      | O_CLOEXEC
+      | O_CREAT
+      | O_DIRECT
+      | O_DIRECTORY
+      | O_DSYNC
+      | O_EXCL
+      | O_LARGEFILE
+      | O_NOATIME
+      | O_NOCTTY
+      | O_NOFOLLOW
+      | O_NONBLOCK
+      | O_NDELAY
+      | O_PATH
+      | O_SYNC
+      | O_TMPFILE
+      | O_TRUNC
+
+    val r = [| O_RDONLY |]
+    (* Open for reading. Fail if file does not exist. *)
+    val w = [| O_WRONLY; O_CREAT; O_TRUNC |]
+    (* Open for writing. Truncate the file if it already exists. *)
+    val x = [| O_WRONLY; O_CREAT; O_EXCL |]
+    (* Create new file and open it for writing. Fail if it already exists. *)
+    val a = [| O_WRONLY; O_APPEND; O_CREAT |]
+    (* Open for writing. Append to the file if it already exists. *)
+    val rw = [| O_RDWR; O_CREAT; O_TRUNC |]
+    (* Open for reading and writing. Truncate the file if it already exists. *)
+
+    val default = r
+  end
+
+  module Mode: sig
+    type t =
+      | S_ISUID (* 0o4000 set-user-ID bit. *)
+      | S_ISGID (* 0o2000 set-group-ID bit (see inode(7)). *)
+      | S_ISVTX (* 0o1000 sticky bit (see inode(7)). *)
+
+      | S_IRWXU (* 0o0700 user (file owner) has read, write, and execute permission. *)
+      | S_IRUSR (* 0o0400 user has read permission. *)
+      | S_IWUSR (* 0o0200 user has write permission. *)
+      | S_IXUSR (* 0o0100 user has execute permission. *)
+
+      | S_IRWXG (* 0o0070 group has read, write, and execute permission. *)
+      | S_IRGRP (* 0o0040 group has read permission. *)
+      | S_IWGRP (* 0o0020 group has write permission. *)
+      | S_IXGRP (* 0o0010 group has execute permission. *)
+
+      | S_IRWXO (* 0o0007 others have read, write, and execute permission. *)
+      | S_IROTH (* 0o0004 others have read permission. *)
+      | S_IWOTH (* 0o0002 others have write permission. *)
+      | S_IXOTH (* 0o0001 others have execute permission. *)
+
+    val default = [| S_IRUSR; S_IWUSR; S_IRGRP; S_IWGRP |] (* 0o0660 *)
+  end
+
   val submit: ?flag:Flag.t -> ?mode:uns -> Path.t -> (t, Errno.t) result
   (** [submit ~flag ~mode path] submits an open operation for a file at [path] with [flag] (default
       Flag.R_O) Unix file permissions and [mode] (default 0o660) Unix file permissions. This
       operation does not block. Returns a [t] to the open submission or an [Errno.t] if the open
       could not be submitted. *)
+
+  val submit2: ?flag:Flag.t array -> ?mode: Mode.t array -> Path.t -> (t, Errno.t) result
 
   val submit_hlt: ?flag:Flag.t -> ?mode:uns -> Path.t -> t
   (** [submit ~flag ~mode path] submits an open operation for a file at [path] with [flag] (default
