@@ -3,8 +3,8 @@ open Rudiments
 (** Operating system error system number. *)
 
 type t =
-  | EPERM
-  | ENOENT
+  | EPERM       		(*   0 *)
+  | ENOENT					(*   1 *)
   | ESRCH
   | EINTR
   | EIO

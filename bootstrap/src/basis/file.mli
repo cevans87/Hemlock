@@ -1,4 +1,13 @@
+(** Standard C {!type.file}. *)
 open Rudiments
+
+type t
+(** An internally immutable token backed by an external, mutable Unix file descriptor. *)
+
+type ctype = sint
+(** Raw return value for the `open(2)` system call. On successful call to `open(2)`, this is a
+    valid file descriptor (a nonnegative integer). On error, -1 is returned and errno is set to
+    indicate the error. *)
 
 module Flag: sig
   type t =
@@ -17,9 +26,6 @@ module Flag: sig
             *)
 end
 
-type t
-(** An internally immutable token backed by an external, mutable Unix file descriptor. *)
-
 val stdin: t
 
 val stdout: t
@@ -29,6 +35,7 @@ val stderr: t
 val fd: t -> uns
 (** [fd t] returns the Unix file descriptor corresponding to [t]. *)
 
+(* See `open(2)` man-page for underlying Standard C system call interface. *)
 module Open: sig
   type file = t
   type t
@@ -36,37 +43,47 @@ module Open: sig
 
   module Flag2: sig
     type t =
-      | O_APPEND
-      | O_ASYNC
+      | O_RDONLY
+      | O_RDWR
+      | O_WRONLY
+      (* Access mode flags. *)
+
       | O_CLOEXEC
       | O_CREAT
-      | O_DIRECT
       | O_DIRECTORY
-      | O_DSYNC
       | O_EXCL
-      | O_LARGEFILE
-      | O_NOATIME
       | O_NOCTTY
       | O_NOFOLLOW
-      | O_NONBLOCK
-      | O_NDELAY
-      | O_PATH
-      | O_SYNC
       | O_TMPFILE
       | O_TRUNC
+      (* File creation flags. These affect the semantics of the open operation itself. *)
 
-    val r = [| O_RDONLY |]
+      | O_APPEND
+      | O_ASYNC
+      | O_DIRECT
+      | O_DSYNC
+      | O_LARGEFILE
+      | O_NDELAY
+      | O_NOATIME
+      | O_NONBLOCK
+      | O_PATH
+      | O_SYNC
+      (* File status flags. These affect the semantics of I/O operations on opened file. *)
+
+    val r: t array
     (* Open for reading. Fail if file does not exist. *)
-    val w = [| O_WRONLY; O_CREAT; O_TRUNC |]
+    val w: t array
     (* Open for writing. Truncate the file if it already exists. *)
-    val x = [| O_WRONLY; O_CREAT; O_EXCL |]
+    val x: t array
     (* Create new file and open it for writing. Fail if it already exists. *)
-    val a = [| O_WRONLY; O_APPEND; O_CREAT |]
+    val a: t array
     (* Open for writing. Append to the file if it already exists. *)
-    val rw = [| O_RDWR; O_CREAT; O_TRUNC |]
+    val rw: t array
     (* Open for reading and writing. Truncate the file if it already exists. *)
+    val defaults: t array
+    (* Open for reading. Fail if file does not exist. *)
 
-    val default = r
+    val to_string: t -> string
   end
 
   module Mode: sig
@@ -90,7 +107,8 @@ module Open: sig
       | S_IWOTH (* 0o0002 others have write permission. *)
       | S_IXOTH (* 0o0001 others have execute permission. *)
 
-    val default = [| S_IRUSR; S_IWUSR; S_IRGRP; S_IWGRP |] (* 0o0660 *)
+    val defaults: t array
+    (* 0o0660 user and group have read and write permission. *)
   end
 
   val submit: ?flag:Flag.t -> ?mode:uns -> Path.t -> (t, Errno.t) result
@@ -99,13 +117,13 @@ module Open: sig
       operation does not block. Returns a [t] to the open submission or an [Errno.t] if the open
       could not be submitted. *)
 
-  val submit2: ?flag:Flag.t array -> ?mode: Mode.t array -> Path.t -> (t, Errno.t) result
-
   val submit_hlt: ?flag:Flag.t -> ?mode:uns -> Path.t -> t
   (** [submit ~flag ~mode path] submits an open operation for a file at [path] with [flag] (default
       Flag.R_O) Unix file permissions and [mode] (default 0o660) Unix file permissions. This
       operation does not block. Returns a [t] to the open submission or halts if the open could
       not be submitted. *)
+
+  val of_path: ?flag:Flag.t array -> ?mode: Mode.t array -> Path.t -> (t, Errno.t) result *)
 
   val complete: t -> (file, Errno.t) result
   (** [complete t] blocks until given [t] is complete. Returns a [file] or an [Errno.t] if the file

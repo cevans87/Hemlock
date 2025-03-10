@@ -1,3 +1,4 @@
+#define _GNU_SOURCE // For O_DIRECT,
 #define _LARGEFILE64_SOURCE // For O_LARGEFILE
 
 #include <assert.h>
@@ -18,30 +19,64 @@
 #include "executor.h"
 #include "ioring.h"
 
-CAMLprim value
-hemlock_basis_file_open_flags_init(value a_i) {
-    switch Int64_val(a_i) {
-        case 0: return caml_copy_int64(O_APPEND);
-        case 1: return caml_copy_int64(O_ASYNC);
-        case 2: return caml_copy_int64(O_CLOEXEC);
-        case 3: return caml_copy_int64(O_CREAT);
-        //case 4: return caml_copy_int64(O_DIRECT);
-        case 5: return caml_copy_int64(O_DIRECTORY);
-        case 6: return caml_copy_int64(O_DSYNC);
-        case 7: return caml_copy_int64(O_EXCL);
-        case 8: return caml_copy_int64(O_LARGEFILE);
-        //case 9: return caml_copy_int64(O_NOATIME);
-        case 10: return caml_copy_int64(O_NOCTTY);
-        case 11: return caml_copy_int64(O_NOFOLLOW);
-        case 12: return caml_copy_int64(O_NONBLOCK);
-        case 13: return caml_copy_int64(O_NDELAY);
-        //case 14: return caml_copy_int64(O_PATH);
-        case 15: return caml_copy_int64(O_SYNC);
-        //case 16: return caml_copy_int64(O_TMPFILE);
-        case 17: return caml_copy_int64(O_TRUNC);
-        default: assert(false);
-    };
+// Export underlying ctype values for File.Open.Flag.t.
+#define HEMLOCK_BASIS_FILE_OPEN_FLAG_T(FLAG) \
+CAMLprim value hemlock_basis_file_open_flag_t_ ## FLAG () { \
+    return caml_copy_int64(FLAG); \
 }
+
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_RDONLY)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_RDWR)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_WRONLY)
+
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_CLOEXEC)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_CREAT)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_DIRECTORY)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_EXCL)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_NOCTTY)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_NOFOLLOW)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_TMPFILE)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_TRUNC)
+
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_APPEND)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_ASYNC)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_DIRECT)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_DSYNC)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_LARGEFILE)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_NDELAY)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_NOATIME)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_NONBLOCK)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_PATH)
+HEMLOCK_BASIS_FILE_OPEN_FLAG_T(O_SYNC)
+
+#undef HEMLOCK_BASIS_FILE_OPEN_FLAG
+
+// Export underlying ctype values for File.Open.Mode.t.
+#define HEMLOCK_BASIS_FILE_OPEN_MODE_T(MODE) \
+CAMLprim value hemlock_basis_file_open_mode_t_ ## MODE () { \
+    return caml_copy_int64(MODE); \
+}
+
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_ISUID)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_ISGID)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_ISVTX)
+
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IRWXU)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IRUSR)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IWUSR)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IXUSR)
+
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IRWXG)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IRGRP)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IWGRP)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IXGRP)
+
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IRWXO)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IROTH)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IWOTH)
+HEMLOCK_BASIS_FILE_OPEN_MODE_T(S_IXOTH)
+
+#undef HEMLOCK_BASIS_FILE_OPEN_MODE
 
 int flags_of_hemlock_file_flag[] = {
     /* R_O   */ O_RDONLY,
@@ -146,6 +181,38 @@ hemlock_basis_file_open_submit_inner(value a_flag, value a_mode, value a_bytes) 
         oe,
         hemlock_ioring_open_submit(
             &user_data, pathname, flags, mode, &hemlock_executor_get()->ioring
+        )
+    );
+
+LABEL_OUT:
+    return hemlock_basis_executor_submit_out(oe, user_data);
+}
+
+/**
+ * _of_path: Flag.ctype -> Mode.ctype -> Path.ctype >{os}-> (Errno.ctype * Open.ctype)
+ *
+ * Above signature assumes namespace of `Basis.File.Open` module.
+ */
+CAMLprim value
+hemlock_basis_file_open_of_path(value a_flags, value a_modes, value a_path) {
+    size_t flags = Long_val(a_flags);
+    size_t mode = Int64_val(a_modes);
+    uint8_t *path = (uint8_t *)Bytes_val(a_path);
+
+    size_t n = caml_string_length(a_path);
+    uint8_t *path_copy = (uint8_t *)malloc(sizeof(uint8_t) * (n + 1));
+    assert(path_copy != NULL);
+    memcpy(path_copy, path, sizeof(uint8_t) * n);
+    path_copy[n] = '\0';
+    path = path_copy;
+
+    hemlock_opt_error_t oe = HEMLOCK_OE_NONE;
+
+    hemlock_user_data_t *user_data = NULL;
+    HEMLOCK_OE(
+        oe,
+        hemlock_ioring_open_submit(
+            &user_data, path, flags, mode, &hemlock_executor_get()->ioring
         )
     );
 
