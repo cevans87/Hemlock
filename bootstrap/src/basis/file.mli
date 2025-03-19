@@ -4,7 +4,9 @@ open Rudiments
 type t
 (** An internally immutable token backed by an external, mutable Unix file descriptor. *)
 
+(*
 type ctype = sint
+*)
 (** Raw return value for the `open(2)` system call. On successful call to `open(2)`, this is a
     valid file descriptor (a nonnegative integer). On error, -1 is returned and errno is set to
     indicate the error. *)
@@ -41,6 +43,7 @@ module Open: sig
   type t
   (* An internally immutable token backed by an external I/O open completion data structure. *)
 
+  (*
   module Flag2: sig
     type t =
       | O_RDONLY
@@ -85,7 +88,9 @@ module Open: sig
 
     val to_string: t -> string
   end
+*)
 
+  (*
   module Mode: sig
     type t =
       | S_ISUID (* 0o4000 set-user-ID bit. *)
@@ -110,6 +115,7 @@ module Open: sig
     val defaults: t array
     (* 0o0660 user and group have read and write permission. *)
   end
+  *)
 
   val submit: ?flag:Flag.t -> ?mode:uns -> Path.t -> (t, Errno.t) result
   (** [submit ~flag ~mode path] submits an open operation for a file at [path] with [flag] (default
@@ -123,7 +129,7 @@ module Open: sig
       operation does not block. Returns a [t] to the open submission or halts if the open could
       not be submitted. *)
 
-  val of_path: ?flag:Flag.t array -> ?mode: Mode.t array -> Path.t -> (t, Errno.t) result *)
+  (*  val of_path: ?flag:Flag.t array -> ?mode: Mode.t array -> Path.t -> (t, Errno.t) result *)
 
   val complete: t -> (file, Errno.t) result
   (** [complete t] blocks until given [t] is complete. Returns a [file] or an [Errno.t] if the file

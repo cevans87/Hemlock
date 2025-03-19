@@ -61,6 +61,7 @@ module Open = struct
   type file = t
   type t = uns
 
+  (*
   module Flag2 = struct
     type t =
       | O_RDONLY
@@ -287,6 +288,7 @@ module Open = struct
       | S_IXOTH -> "S_IXOTH"
   end
 
+*)
   external submit_inner: Flag.t -> uns -> Stdlib.Bytes.t -> (sint * t) =
     "hemlock_basis_file_open_submit_inner"
 
@@ -298,19 +300,21 @@ module Open = struct
     | true -> Error (error_of_neg_errno value)
     | false -> Ok t
 
+  (*
   external _of_path: Flag.ctype -> Mode.ctype -> Path.ctype -> (Errno.ctype * File.ctype) =
     "hemlock_basis_file_open_of_path"
 
   let submit2 ?(flags=Flag.defaults) ?(modes=Mode.defaults) path =
     let path_bytes = bytes_of_slice (Path.to_bytes path) in
     let flags_ctype = Array.fold ~init:0 ~f:Uns.bit_or flags in
-    lot modes_ctype = Array.fold ~init:0 ~f:Uns.bit_or modes in
+    let modes_ctype = Array.fold ~init:0 ~f:Uns.bit_or modes in
 
     let value, t = submit_inner flag mode path_bytes in
     let t = register_user_data_finalizer t in
     match Sint.(value < kv 0L) with
     | true -> Error (error_of_neg_errno value)
     | false -> Ok t
+*)
 
   let submit_hlt ?(flag=Flag.R_O) ?(mode=0o660L) path =
     match submit ~flag ~mode path with

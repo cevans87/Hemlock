@@ -1,0 +1,9 @@
+(library
+ (name Open)
+ (public_name Hemlock.Os.Linux.Open)
+ (libraries Hemlock.Basis)
+ (foreign_stubs
+  (language c)
+  (names flag mode) (flags -fPIC))
+ (synopsis "Hemlock bootstrap Os Linux library")
+ )

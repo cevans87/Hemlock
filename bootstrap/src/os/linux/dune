@@ -1,0 +1,6 @@
+(library
+ (name Linux)
+ (public_name Hemlock.Os.Linux)
+ (libraries Hemlock.Os.Linux.Open)
+ (synopsis "Hemlock bootstrap Os Linux library")
+ )

@@ -1,0 +1,6 @@
+(library
+ (name Hemlock)
+ (public_name Hemlock)
+ (libraries Hemlock.Basis Hemlock.Os)
+ (synopsis "Hemlock bootstrap library")
+ )
