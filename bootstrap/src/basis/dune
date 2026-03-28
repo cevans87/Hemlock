@@ -4,7 +4,7 @@
  (private_modules convert convertIntf)
  (foreign_stubs
   (language c)
-  (names entropy errno intnb intw u64))
+  (names entropy errno_deprecated intnb intw u64))
  (foreign_stubs
   (language c)
   (names executor file ioring os) (flags -fPIC))

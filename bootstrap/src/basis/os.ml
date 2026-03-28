@@ -17,4 +17,4 @@ let mkdirat ?dir ?(mode=0o755L) path =
   in
   match mkdirat_inner dirfd (Path.to_string_replace path) mode with
   | 0L -> None
-  | errno -> Some (Errno.of_uns_hlt (Uns.bits_of_sint errno))
+  | errno -> Some (Errno_deprecated.of_uns_hlt (Uns.bits_of_sint errno))

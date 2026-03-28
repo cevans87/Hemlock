@@ -1,7 +1,7 @@
 open Rudiments
 
 let error_of_neg_errno neg_errno =
-  Errno.of_uns_hlt (Uns.bits_of_sint (Sint.neg neg_errno))
+  Errno_deprecated.of_uns_hlt (Uns.bits_of_sint (Sint.neg neg_errno))
 
 module Flag = struct
   (* Modifications to Flag.t must be reflected in file.c. *)
@@ -74,7 +74,7 @@ module Open = struct
 
   let submit_hlt ?(flag=Flag.R_O) ?(mode=0o660L) path =
     match submit ~flag ~mode path with
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
     | Ok t -> t
 
   let complete t =
@@ -86,7 +86,7 @@ module Open = struct
   let complete_hlt t =
     match complete t with
     | Ok t -> t
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
 end
 
 let of_path ?flag ?mode path =
@@ -112,7 +112,7 @@ module Close = struct
 
   let submit_hlt file =
     match submit file with
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
     | Ok t -> t
 
   let complete t =
@@ -124,7 +124,7 @@ module Close = struct
   let complete_hlt t =
     match complete t with
     | None -> ()
-    | Some error -> halt (Errno.to_string error)
+    | Some error -> halt (Errno_deprecated.to_string error)
 end
 
 let close t =
@@ -170,7 +170,7 @@ module Read = struct
 
   let submit_hlt ?n ?buffer file =
     match submit ?n ?buffer file with
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
     | Ok t -> t
 
   external complete_inner: Stdlib.Bytes.t -> inner -> sint =
@@ -195,7 +195,7 @@ module Read = struct
   let complete_hlt t =
     match complete t with
     | Ok buffer -> buffer
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
 end
 
 let read ?n ?buffer t =
@@ -227,7 +227,7 @@ module Write = struct
 
   let submit_hlt buffer file =
     match submit buffer file with
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
     | Ok t -> t
 
   let complete t =
@@ -244,7 +244,7 @@ module Write = struct
   let complete_hlt t =
     match complete t with
     | Ok buffer -> buffer
-    | Error error -> halt (Errno.to_string error)
+    | Error error -> halt (Errno_deprecated.to_string error)
 end
 
 let write buffer t =
@@ -282,7 +282,7 @@ let seek_hlt_base inner rel_off t =
   | Ok base_off -> base_off
   | Error error -> begin
       let _ = close t in
-      halt (Errno.to_string error)
+      halt (Errno_deprecated.to_string error)
     end
 
 external seek_inner: sint -> t -> sint = "hemlock_basis_file_seek_inner"

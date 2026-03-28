@@ -46,9 +46,9 @@ let open_error ~err path error =
   let _err =
     err
     |> Fmt.fmt "hocc: File.of_path " |> Path.pp path |> Fmt.fmt ": ["
-    |> Errno.pp error
+    |> Errno_deprecated.pp error
     |> Fmt.fmt "] "
-    |> Fmt.fmt (Errno.to_string error)
+    |> Fmt.fmt (Errno_deprecated.to_string error)
     |> Fmt.fmt "\n"
   in
   Stdlib.exit 1

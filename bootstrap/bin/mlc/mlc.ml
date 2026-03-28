@@ -24,7 +24,7 @@ let scan_file path =
     | Error err -> halt (
       String.Fmt.empty
       |> Fmt.fmt "File.of_path error: "
-      |> Fmt.fmt (Errno.to_string err)
+      |> Fmt.fmt (Errno_deprecated.to_string err)
       |> Fmt.fmt "\n"
       |> Fmt.to_string
     )
