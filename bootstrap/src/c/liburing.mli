@@ -38,7 +38,7 @@ module Ioring : sig
     val defer_taskrun      : t (* IORING_SETUP_DEFER_TASKRUN *)
     val no_mmap            : t (* IORING_SETUP_NO_MMAP *)
     val registered_fd_only : t (* IORING_SETUP_REGISTERED_FD_ONLY *)
-    val no_sqarray         : t (* IORING_SETUP_NO_SQARRAY *)
+    (* val no_sqarray         : t (* IORING_SETUP_NO_SQARRAY *) *)
   end
 
   module Feat : sig
@@ -62,8 +62,8 @@ module Ioring : sig
     val cqe_skip        : t (* IORING_FEAT_CQE_SKIP *)
     val linked_file     : t (* IORING_FEAT_LINKED_FILE *)
     val reg_reg_ring    : t (* IORING_FEAT_REG_REG_RING *)
-    val recvsend_bundle : t (* IORING_FEAT_RECVSEND_BUNDLE *)
-    val min_timeout     : t (* IORING_FEAT_MIN_TIMEOUT *)
+    (* val recvsend_bundle : t (* IORING_FEAT_RECVSEND_BUNDLE *) *)
+    (* val min_timeout     : t (* IORING_FEAT_MIN_TIMEOUT *) *)
   end
 
   module Cqe_f : sig
@@ -135,15 +135,15 @@ module Ioring : sig
     val uring_cmd        : t (* IORING_OP_URING_CMD *)
     val send_zc          : t (* IORING_OP_SEND_ZC *)
     val sendmsg_zc       : t (* IORING_OP_SENDMSG_ZC *)
-    val read_multishot   : t (* IORING_OP_READ_MULTISHOT *)
-    val waitid           : t (* IORING_OP_WAITID *)
-    val futex_wait       : t (* IORING_OP_FUTEX_WAIT *)
-    val futex_wake       : t (* IORING_OP_FUTEX_WAKE *)
-    val futex_waitv      : t (* IORING_OP_FUTEX_WAITV *)
-    val fixed_fd_install : t (* IORING_OP_FIXED_FD_INSTALL *)
-    val ftruncate        : t (* IORING_OP_FTRUNCATE *)
-    val bind             : t (* IORING_OP_BIND *)
-    val listen           : t (* IORING_OP_LISTEN *)
+    (* val read_multishot   : t (* IORING_OP_READ_MULTISHOT *) *)
+    (* val waitid           : t (* IORING_OP_WAITID *) *)
+    (* val futex_wait       : t (* IORING_OP_FUTEX_WAIT *) *)
+    (* val futex_wake       : t (* IORING_OP_FUTEX_WAKE *) *)
+    (* val futex_waitv      : t (* IORING_OP_FUTEX_WAITV *) *)
+    (* val fixed_fd_install : t (* IORING_OP_FIXED_FD_INSTALL *) *)
+    (* val ftruncate        : t (* IORING_OP_FTRUNCATE *) *)
+    (* val bind             : t (* IORING_OP_BIND *) *)
+    (* val listen           : t (* IORING_OP_LISTEN *) *)
     val last             : t (* IORING_OP_LAST *)
   end
 
@@ -186,8 +186,8 @@ module Ioring : sig
     val fd       : t (* IORING_ASYNC_CANCEL_FD *)
     val any      : t (* IORING_ASYNC_CANCEL_ANY *)
     val fd_fixed : t (* IORING_ASYNC_CANCEL_FD_FIXED *)
-    val userdata : t (* IORING_ASYNC_CANCEL_USERDATA *)
-    val op       : t (* IORING_ASYNC_CANCEL_OP *)
+    (* val userdata : t (* IORING_ASYNC_CANCEL_USERDATA *) *)
+    (* val op       : t (* IORING_ASYNC_CANCEL_OP *) *)
   end
 
   module Recvsend : sig
@@ -199,7 +199,7 @@ module Ioring : sig
 
     val poll_first : t (* IORING_RECVSEND_POLL_FIRST *)
     val fixed_buf  : t (* IORING_RECVSEND_FIXED_BUF *)
-    val bundle     : t (* IORING_RECVSEND_BUNDLE *)
+    (* val bundle     : t (* IORING_RECVSEND_BUNDLE *) *)
   end
 
   module Poll : sig
@@ -276,11 +276,11 @@ module Ioring : sig
     val pbuf_ring        : t (* IORING_REGISTER_PBUF_RING *)
     val sync_cancel      : t (* IORING_REGISTER_SYNC_CANCEL *)
     val file_alloc_range : t (* IORING_REGISTER_FILE_ALLOC_RANGE *)
-    val pbuf_status      : t (* IORING_REGISTER_PBUF_STATUS *)
-    val napi             : t (* IORING_REGISTER_NAPI *)
-    val clock            : t (* IORING_REGISTER_CLOCK *)
-    val clone_buffers    : t (* IORING_REGISTER_CLONE_BUFFERS *)
-    val send_msg_rings   : t (* IORING_REGISTER_SEND_MSG_RINGS *)
+    (* val pbuf_status      : t (* IORING_REGISTER_PBUF_STATUS *) *)
+    (* val napi             : t (* IORING_REGISTER_NAPI *) *)
+    (* val clock            : t (* IORING_REGISTER_CLOCK *) *)
+    (* val clone_buffers    : t (* IORING_REGISTER_CLONE_BUFFERS *) *)
+    (* val send_msg_rings   : t (* IORING_REGISTER_SEND_MSG_RINGS *) *)
     val last             : t (* IORING_REGISTER_LAST *)
   end
 
@@ -298,7 +298,7 @@ module Ioring : sig
     val iowq_aff    : t (* IORING_UNREGISTER_IOWQ_AFF *)
     val ring_fds    : t (* IORING_UNREGISTER_RING_FDS *)
     val pbuf_ring   : t (* IORING_UNREGISTER_PBUF_RING *)
-    val napi        : t (* IORING_UNREGISTER_NAPI *)
+    (* val napi        : t (* IORING_UNREGISTER_NAPI *) *)
   end
 end
 

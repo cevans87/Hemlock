@@ -1,8 +1,5 @@
 type t
 
-val of_int : int -> t
-val to_int : t -> int
-
 val eperm           : t  (* Operation not permitted *)
 val enoent          : t  (* No such file or directory *)
 val esrch           : t  (* No such process *)

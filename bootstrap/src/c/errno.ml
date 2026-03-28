@@ -1,7 +1,5 @@
 type t = int
 
-let of_int i = i
-let to_int t = t
 
 external eperm           : unit -> t = "hemlock__c__errno__eperm"
 external enoent          : unit -> t = "hemlock__c__errno__enoent"

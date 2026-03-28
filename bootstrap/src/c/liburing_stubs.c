@@ -327,7 +327,7 @@ CAMLprim value hemlock__c__liburing__ioring__setup__single_issuer(value unit)   
 CAMLprim value hemlock__c__liburing__ioring__setup__defer_taskrun(value unit)      { (void)unit; return caml_copy_int64(IORING_SETUP_DEFER_TASKRUN); }
 CAMLprim value hemlock__c__liburing__ioring__setup__no_mmap(value unit)            { (void)unit; return caml_copy_int64(IORING_SETUP_NO_MMAP); }
 CAMLprim value hemlock__c__liburing__ioring__setup__registered_fd_only(value unit) { (void)unit; return caml_copy_int64(IORING_SETUP_REGISTERED_FD_ONLY); }
-CAMLprim value hemlock__c__liburing__ioring__setup__no_sqarray(value unit)         { (void)unit; return caml_copy_int64(IORING_SETUP_NO_SQARRAY); }
+/* CAMLprim value hemlock__c__liburing__ioring__setup__no_sqarray(value unit)         { (void)unit; return caml_copy_int64(IORING_SETUP_NO_SQARRAY); } */
 
 /*****************************************************************************
  * Feature flags (IORING_FEAT_*)
@@ -347,8 +347,8 @@ CAMLprim value hemlock__c__liburing__ioring__feat__rsrc_tags(value unit)        
 CAMLprim value hemlock__c__liburing__ioring__feat__cqe_skip(value unit)         { (void)unit; return caml_copy_int64(IORING_FEAT_CQE_SKIP); }
 CAMLprim value hemlock__c__liburing__ioring__feat__linked_file(value unit)      { (void)unit; return caml_copy_int64(IORING_FEAT_LINKED_FILE); }
 CAMLprim value hemlock__c__liburing__ioring__feat__reg_reg_ring(value unit)     { (void)unit; return caml_copy_int64(IORING_FEAT_REG_REG_RING); }
-CAMLprim value hemlock__c__liburing__ioring__feat__recvsend_bundle(value unit)  { (void)unit; return caml_copy_int64(IORING_FEAT_RECVSEND_BUNDLE); }
-CAMLprim value hemlock__c__liburing__ioring__feat__min_timeout(value unit)      { (void)unit; return caml_copy_int64(IORING_FEAT_MIN_TIMEOUT); }
+/* CAMLprim value hemlock__c__liburing__ioring__feat__recvsend_bundle(value unit)  { (void)unit; return caml_copy_int64(IORING_FEAT_RECVSEND_BUNDLE); } */
+/* CAMLprim value hemlock__c__liburing__ioring__feat__min_timeout(value unit)      { (void)unit; return caml_copy_int64(IORING_FEAT_MIN_TIMEOUT); } */
 
 /*****************************************************************************
  * SQE flags (IOSQE_*)
@@ -411,12 +411,12 @@ CAMLprim value hemlock__c__liburing__ioring__register__pbuf_ring(value unit)    
 CAMLprim value hemlock__c__liburing__ioring__unregister__pbuf_ring(value unit)       { (void)unit; return caml_copy_int64(IORING_UNREGISTER_PBUF_RING); }
 CAMLprim value hemlock__c__liburing__ioring__register__sync_cancel(value unit)       { (void)unit; return caml_copy_int64(IORING_REGISTER_SYNC_CANCEL); }
 CAMLprim value hemlock__c__liburing__ioring__register__file_alloc_range(value unit)  { (void)unit; return caml_copy_int64(IORING_REGISTER_FILE_ALLOC_RANGE); }
-CAMLprim value hemlock__c__liburing__ioring__register__pbuf_status(value unit)       { (void)unit; return caml_copy_int64(IORING_REGISTER_PBUF_STATUS); }
-CAMLprim value hemlock__c__liburing__ioring__register__napi(value unit)              { (void)unit; return caml_copy_int64(IORING_REGISTER_NAPI); }
-CAMLprim value hemlock__c__liburing__ioring__unregister__napi(value unit)            { (void)unit; return caml_copy_int64(IORING_UNREGISTER_NAPI); }
-CAMLprim value hemlock__c__liburing__ioring__register__clock(value unit)             { (void)unit; return caml_copy_int64(IORING_REGISTER_CLOCK); }
-CAMLprim value hemlock__c__liburing__ioring__register__clone_buffers(value unit)     { (void)unit; return caml_copy_int64(IORING_REGISTER_CLONE_BUFFERS); }
-CAMLprim value hemlock__c__liburing__ioring__register__send_msg_rings(value unit)    { (void)unit; return caml_copy_int64(IORING_REGISTER_SEND_MSG_RINGS); }
+/* CAMLprim value hemlock__c__liburing__ioring__register__pbuf_status(value unit)       { (void)unit; return caml_copy_int64(IORING_REGISTER_PBUF_STATUS); } */
+/* CAMLprim value hemlock__c__liburing__ioring__register__napi(value unit)              { (void)unit; return caml_copy_int64(IORING_REGISTER_NAPI); } */
+/* CAMLprim value hemlock__c__liburing__ioring__unregister__napi(value unit)            { (void)unit; return caml_copy_int64(IORING_UNREGISTER_NAPI); } */
+/* CAMLprim value hemlock__c__liburing__ioring__register__clock(value unit)             { (void)unit; return caml_copy_int64(IORING_REGISTER_CLOCK); } */
+/* CAMLprim value hemlock__c__liburing__ioring__register__clone_buffers(value unit)     { (void)unit; return caml_copy_int64(IORING_REGISTER_CLONE_BUFFERS); } */
+/* CAMLprim value hemlock__c__liburing__ioring__register__send_msg_rings(value unit)    { (void)unit; return caml_copy_int64(IORING_REGISTER_SEND_MSG_RINGS); } */
 CAMLprim value hemlock__c__liburing__ioring__register__last(value unit)              { (void)unit; return caml_copy_int64(IORING_REGISTER_LAST); }
 
 /*****************************************************************************
@@ -472,15 +472,15 @@ CAMLprim value hemlock__c__liburing__ioring__op__socket(value unit)           { 
 CAMLprim value hemlock__c__liburing__ioring__op__uring_cmd(value unit)        { (void)unit; return caml_copy_int64(IORING_OP_URING_CMD); }
 CAMLprim value hemlock__c__liburing__ioring__op__send_zc(value unit)          { (void)unit; return caml_copy_int64(IORING_OP_SEND_ZC); }
 CAMLprim value hemlock__c__liburing__ioring__op__sendmsg_zc(value unit)       { (void)unit; return caml_copy_int64(IORING_OP_SENDMSG_ZC); }
-CAMLprim value hemlock__c__liburing__ioring__op__read_multishot(value unit)   { (void)unit; return caml_copy_int64(IORING_OP_READ_MULTISHOT); }
-CAMLprim value hemlock__c__liburing__ioring__op__waitid(value unit)           { (void)unit; return caml_copy_int64(IORING_OP_WAITID); }
-CAMLprim value hemlock__c__liburing__ioring__op__futex_wait(value unit)       { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAIT); }
-CAMLprim value hemlock__c__liburing__ioring__op__futex_wake(value unit)       { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAKE); }
-CAMLprim value hemlock__c__liburing__ioring__op__futex_waitv(value unit)      { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAITV); }
-CAMLprim value hemlock__c__liburing__ioring__op__fixed_fd_install(value unit) { (void)unit; return caml_copy_int64(IORING_OP_FIXED_FD_INSTALL); }
-CAMLprim value hemlock__c__liburing__ioring__op__ftruncate(value unit)        { (void)unit; return caml_copy_int64(IORING_OP_FTRUNCATE); }
-CAMLprim value hemlock__c__liburing__ioring__op__bind(value unit)             { (void)unit; return caml_copy_int64(IORING_OP_BIND); }
-CAMLprim value hemlock__c__liburing__ioring__op__listen(value unit)           { (void)unit; return caml_copy_int64(IORING_OP_LISTEN); }
+/* CAMLprim value hemlock__c__liburing__ioring__op__read_multishot(value unit)   { (void)unit; return caml_copy_int64(IORING_OP_READ_MULTISHOT); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__waitid(value unit)           { (void)unit; return caml_copy_int64(IORING_OP_WAITID); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__futex_wait(value unit)       { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAIT); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__futex_wake(value unit)       { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAKE); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__futex_waitv(value unit)      { (void)unit; return caml_copy_int64(IORING_OP_FUTEX_WAITV); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__fixed_fd_install(value unit) { (void)unit; return caml_copy_int64(IORING_OP_FIXED_FD_INSTALL); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__ftruncate(value unit)        { (void)unit; return caml_copy_int64(IORING_OP_FTRUNCATE); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__bind(value unit)             { (void)unit; return caml_copy_int64(IORING_OP_BIND); } */
+/* CAMLprim value hemlock__c__liburing__ioring__op__listen(value unit)           { (void)unit; return caml_copy_int64(IORING_OP_LISTEN); } */
 CAMLprim value hemlock__c__liburing__ioring__op__last(value unit)             { (void)unit; return caml_copy_int64(IORING_OP_LAST); }
 
 /*****************************************************************************
@@ -511,8 +511,8 @@ CAMLprim value hemlock__c__liburing__ioring__async_cancel__all(value unit)      
 CAMLprim value hemlock__c__liburing__ioring__async_cancel__fd(value unit)       { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_FD); }
 CAMLprim value hemlock__c__liburing__ioring__async_cancel__any(value unit)      { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_ANY); }
 CAMLprim value hemlock__c__liburing__ioring__async_cancel__fd_fixed(value unit) { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_FD_FIXED); }
-CAMLprim value hemlock__c__liburing__ioring__async_cancel__userdata(value unit) { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_USERDATA); }
-CAMLprim value hemlock__c__liburing__ioring__async_cancel__op(value unit)       { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_OP); }
+/* CAMLprim value hemlock__c__liburing__ioring__async_cancel__userdata(value unit) { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_USERDATA); } */
+/* CAMLprim value hemlock__c__liburing__ioring__async_cancel__op(value unit)       { (void)unit; return caml_copy_int64(IORING_ASYNC_CANCEL_OP); } */
 
 /*****************************************************************************
  * Recv/send flags (IORING_RECVSEND_*)
@@ -520,7 +520,7 @@ CAMLprim value hemlock__c__liburing__ioring__async_cancel__op(value unit)       
 
 CAMLprim value hemlock__c__liburing__ioring__recvsend__poll_first(value unit) { (void)unit; return caml_copy_int64(IORING_RECVSEND_POLL_FIRST); }
 CAMLprim value hemlock__c__liburing__ioring__recvsend__fixed_buf(value unit)  { (void)unit; return caml_copy_int64(IORING_RECVSEND_FIXED_BUF); }
-CAMLprim value hemlock__c__liburing__ioring__recvsend__bundle(value unit)     { (void)unit; return caml_copy_int64(IORING_RECVSEND_BUNDLE); }
+/* CAMLprim value hemlock__c__liburing__ioring__recvsend__bundle(value unit)     { (void)unit; return caml_copy_int64(IORING_RECVSEND_BUNDLE); } */
 
 /*****************************************************************************
  * Poll flags (IORING_POLL_ADD_*)

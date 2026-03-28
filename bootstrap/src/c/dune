@@ -4,7 +4,7 @@
  (libraries Basis)
  (foreign_stubs
   (language c)
-  (names errno_stubs liburing_stubs sockaddr_stubs) (flags -fPIC))
+  (names errno_stubs liburing_stubs sockaddr_stubs string_stubs) (flags -fPIC))
  (c_library_flags (-luring))
  (synopsis "Hemlock bootstrap C bindings library")
  )

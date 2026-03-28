@@ -48,7 +48,7 @@ module Ioring = struct
     external defer_taskrun      : unit -> t = "hemlock__c__liburing__ioring__setup__defer_taskrun"
     external no_mmap            : unit -> t = "hemlock__c__liburing__ioring__setup__no_mmap"
     external registered_fd_only : unit -> t = "hemlock__c__liburing__ioring__setup__registered_fd_only"
-    external no_sqarray         : unit -> t = "hemlock__c__liburing__ioring__setup__no_sqarray"
+    (* external no_sqarray         : unit -> t = "hemlock__c__liburing__ioring__setup__no_sqarray" *)
 
     let iopoll             = iopoll ()
     let sqpoll             = sqpoll ()
@@ -66,7 +66,7 @@ module Ioring = struct
     let defer_taskrun      = defer_taskrun ()
     let no_mmap            = no_mmap ()
     let registered_fd_only = registered_fd_only ()
-    let no_sqarray         = no_sqarray ()
+    (* let no_sqarray         = no_sqarray () *)
   end
 
   module Feat = struct
@@ -90,8 +90,8 @@ module Ioring = struct
     external cqe_skip        : unit -> t = "hemlock__c__liburing__ioring__feat__cqe_skip"
     external linked_file     : unit -> t = "hemlock__c__liburing__ioring__feat__linked_file"
     external reg_reg_ring    : unit -> t = "hemlock__c__liburing__ioring__feat__reg_reg_ring"
-    external recvsend_bundle : unit -> t = "hemlock__c__liburing__ioring__feat__recvsend_bundle"
-    external min_timeout     : unit -> t = "hemlock__c__liburing__ioring__feat__min_timeout"
+    (* external recvsend_bundle : unit -> t = "hemlock__c__liburing__ioring__feat__recvsend_bundle" *)
+    (* external min_timeout     : unit -> t = "hemlock__c__liburing__ioring__feat__min_timeout" *)
 
     let single_mmap     = single_mmap ()
     let nodrop          = nodrop ()
@@ -107,8 +107,8 @@ module Ioring = struct
     let cqe_skip        = cqe_skip ()
     let linked_file     = linked_file ()
     let reg_reg_ring    = reg_reg_ring ()
-    let recvsend_bundle = recvsend_bundle ()
-    let min_timeout     = min_timeout ()
+    (* let recvsend_bundle = recvsend_bundle () *)
+    (* let min_timeout     = min_timeout () *)
   end
 
   module Cqe_f = struct
@@ -185,15 +185,15 @@ module Ioring = struct
     external uring_cmd        : unit -> t = "hemlock__c__liburing__ioring__op__uring_cmd"
     external send_zc          : unit -> t = "hemlock__c__liburing__ioring__op__send_zc"
     external sendmsg_zc       : unit -> t = "hemlock__c__liburing__ioring__op__sendmsg_zc"
-    external read_multishot   : unit -> t = "hemlock__c__liburing__ioring__op__read_multishot"
-    external waitid           : unit -> t = "hemlock__c__liburing__ioring__op__waitid"
-    external futex_wait       : unit -> t = "hemlock__c__liburing__ioring__op__futex_wait"
-    external futex_wake       : unit -> t = "hemlock__c__liburing__ioring__op__futex_wake"
-    external futex_waitv      : unit -> t = "hemlock__c__liburing__ioring__op__futex_waitv"
-    external fixed_fd_install : unit -> t = "hemlock__c__liburing__ioring__op__fixed_fd_install"
-    external ftruncate        : unit -> t = "hemlock__c__liburing__ioring__op__ftruncate"
-    external bind             : unit -> t = "hemlock__c__liburing__ioring__op__bind"
-    external listen           : unit -> t = "hemlock__c__liburing__ioring__op__listen"
+    (* external read_multishot   : unit -> t = "hemlock__c__liburing__ioring__op__read_multishot" *)
+    (* external waitid           : unit -> t = "hemlock__c__liburing__ioring__op__waitid" *)
+    (* external futex_wait       : unit -> t = "hemlock__c__liburing__ioring__op__futex_wait" *)
+    (* external futex_wake       : unit -> t = "hemlock__c__liburing__ioring__op__futex_wake" *)
+    (* external futex_waitv      : unit -> t = "hemlock__c__liburing__ioring__op__futex_waitv" *)
+    (* external fixed_fd_install : unit -> t = "hemlock__c__liburing__ioring__op__fixed_fd_install" *)
+    (* external ftruncate        : unit -> t = "hemlock__c__liburing__ioring__op__ftruncate" *)
+    (* external bind             : unit -> t = "hemlock__c__liburing__ioring__op__bind" *)
+    (* external listen           : unit -> t = "hemlock__c__liburing__ioring__op__listen" *)
     external last             : unit -> t = "hemlock__c__liburing__ioring__op__last"
 
     let nop              = nop ()
@@ -245,15 +245,15 @@ module Ioring = struct
     let uring_cmd        = uring_cmd ()
     let send_zc          = send_zc ()
     let sendmsg_zc       = sendmsg_zc ()
-    let read_multishot   = read_multishot ()
-    let waitid           = waitid ()
-    let futex_wait       = futex_wait ()
-    let futex_wake       = futex_wake ()
-    let futex_waitv      = futex_waitv ()
-    let fixed_fd_install = fixed_fd_install ()
-    let ftruncate        = ftruncate ()
-    let bind             = bind ()
-    let listen           = listen ()
+    (* let read_multishot   = read_multishot () *)
+    (* let waitid           = waitid () *)
+    (* let futex_wait       = futex_wait () *)
+    (* let futex_wake       = futex_wake () *)
+    (* let futex_waitv      = futex_waitv () *)
+    (* let fixed_fd_install = fixed_fd_install () *)
+    (* let ftruncate        = ftruncate () *)
+    (* let bind             = bind () *)
+    (* let listen           = listen () *)
     let last             = last ()
   end
 
@@ -308,15 +308,15 @@ module Ioring = struct
     external fd       : unit -> t = "hemlock__c__liburing__ioring__async_cancel__fd"
     external any      : unit -> t = "hemlock__c__liburing__ioring__async_cancel__any"
     external fd_fixed : unit -> t = "hemlock__c__liburing__ioring__async_cancel__fd_fixed"
-    external userdata : unit -> t = "hemlock__c__liburing__ioring__async_cancel__userdata"
-    external op       : unit -> t = "hemlock__c__liburing__ioring__async_cancel__op"
+    (* external userdata : unit -> t = "hemlock__c__liburing__ioring__async_cancel__userdata" *)
+    (* external op       : unit -> t = "hemlock__c__liburing__ioring__async_cancel__op" *)
 
     let all      = all ()
     let fd       = fd ()
     let any      = any ()
     let fd_fixed = fd_fixed ()
-    let userdata = userdata ()
-    let op       = op ()
+    (* let userdata = userdata () *)
+    (* let op       = op () *)
   end
 
   module Recvsend = struct
@@ -328,11 +328,11 @@ module Ioring = struct
 
     external poll_first : unit -> t = "hemlock__c__liburing__ioring__recvsend__poll_first"
     external fixed_buf  : unit -> t = "hemlock__c__liburing__ioring__recvsend__fixed_buf"
-    external bundle     : unit -> t = "hemlock__c__liburing__ioring__recvsend__bundle"
+    (* external bundle     : unit -> t = "hemlock__c__liburing__ioring__recvsend__bundle" *)
 
     let poll_first = poll_first ()
     let fixed_buf  = fixed_buf ()
-    let bundle     = bundle ()
+    (* let bundle     = bundle () *)
   end
 
   module Poll = struct
@@ -425,11 +425,11 @@ module Ioring = struct
     external pbuf_ring        : unit -> t = "hemlock__c__liburing__ioring__register__pbuf_ring"
     external sync_cancel      : unit -> t = "hemlock__c__liburing__ioring__register__sync_cancel"
     external file_alloc_range : unit -> t = "hemlock__c__liburing__ioring__register__file_alloc_range"
-    external pbuf_status      : unit -> t = "hemlock__c__liburing__ioring__register__pbuf_status"
-    external napi             : unit -> t = "hemlock__c__liburing__ioring__register__napi"
-    external clock            : unit -> t = "hemlock__c__liburing__ioring__register__clock"
-    external clone_buffers    : unit -> t = "hemlock__c__liburing__ioring__register__clone_buffers"
-    external send_msg_rings   : unit -> t = "hemlock__c__liburing__ioring__register__send_msg_rings"
+    (* external pbuf_status      : unit -> t = "hemlock__c__liburing__ioring__register__pbuf_status" *)
+    (* external napi             : unit -> t = "hemlock__c__liburing__ioring__register__napi" *)
+    (* external clock            : unit -> t = "hemlock__c__liburing__ioring__register__clock" *)
+    (* external clone_buffers    : unit -> t = "hemlock__c__liburing__ioring__register__clone_buffers" *)
+    (* external send_msg_rings   : unit -> t = "hemlock__c__liburing__ioring__register__send_msg_rings" *)
     external last             : unit -> t = "hemlock__c__liburing__ioring__register__last"
 
     let buffers          = buffers ()
@@ -451,11 +451,11 @@ module Ioring = struct
     let pbuf_ring        = pbuf_ring ()
     let sync_cancel      = sync_cancel ()
     let file_alloc_range = file_alloc_range ()
-    let pbuf_status      = pbuf_status ()
-    let napi             = napi ()
-    let clock            = clock ()
-    let clone_buffers    = clone_buffers ()
-    let send_msg_rings   = send_msg_rings ()
+    (* let pbuf_status      = pbuf_status () *)
+    (* let napi             = napi () *)
+    (* let clock            = clock () *)
+    (* let clone_buffers    = clone_buffers () *)
+    (* let send_msg_rings   = send_msg_rings () *)
     let last             = last ()
   end
 
@@ -473,7 +473,7 @@ module Ioring = struct
     external iowq_aff   : unit -> t = "hemlock__c__liburing__ioring__unregister__iowq_aff"
     external ring_fds    : unit -> t = "hemlock__c__liburing__ioring__unregister__ring_fds"
     external pbuf_ring   : unit -> t = "hemlock__c__liburing__ioring__unregister__pbuf_ring"
-    external napi        : unit -> t = "hemlock__c__liburing__ioring__unregister__napi"
+    (* external napi        : unit -> t = "hemlock__c__liburing__ioring__unregister__napi" *)
 
     let buffers     = buffers ()
     let files       = files ()
@@ -482,7 +482,7 @@ module Ioring = struct
     let iowq_aff   = iowq_aff ()
     let ring_fds    = ring_fds ()
     let pbuf_ring   = pbuf_ring ()
-    let napi        = napi ()
+    (* let napi        = napi () *)
   end
 end
 
