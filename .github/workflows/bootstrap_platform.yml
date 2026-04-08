@@ -30,7 +30,16 @@ jobs:
           tags: branchtaken/hemlock/bootstrap:latest
           target: latest
       - name: Run "ocp_indent"
-        run: docker compose run ocp_indent
+        run: docker compose --verbose run ocp_indent
+      - name: Dump container state on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs
+      - name: Inspect failed containers
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}}\t{{.Status}}'
   build_and_runtest:
     name: Run "build" and "runtest"
     runs-on: ${{ inputs.runs-on }}
@@ -46,7 +55,15 @@ jobs:
           tags: branchtaken/hemlock/bootstrap:latest
           target: latest
       - name: Run "build"
-        run: docker compose run build --verbose
+        run: docker compose --verbose run build --verbose
       - name: Run "runtest"
-        run: docker compose run runtest --verbose
-
+        run: docker compose --verbose run runtest --verbose
+      - name: Dump container state on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs
+      - name: Inspect failed containers
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}}\t{{.Status}}'
