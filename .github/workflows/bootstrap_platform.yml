@@ -31,6 +31,15 @@ jobs:
           target: latest
       - name: Run "ocp_indent"
         run: docker compose --verbose run ocp_indent
+      - name: Dump container state on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs
+      - name: Inspect failed containers
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}}\t{{.Status}}'
   build_and_runtest:
     name: Run "build" and "runtest"
     runs-on: ${{ inputs.runs-on }}
@@ -49,4 +58,12 @@ jobs:
         run: docker compose --verbose run build --verbose
       - name: Run "runtest"
         run: docker compose --verbose run runtest --verbose
-
+      - name: Dump container state on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs
+      - name: Inspect failed containers
+        if: failure()
+        run: |
+          docker ps -a --format '{{.Names}}\t{{.Status}}'
