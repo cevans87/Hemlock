@@ -1,6 +1,6 @@
 open Basis.Rudiments
 open Basis
-open C.Liburing
+open Os.C.Liburing
 
 let () =
   let entries = U32.kv 4L in
@@ -9,7 +9,7 @@ let () =
   (* Set up a ring with 4 entries and no flags. *)
   let ring = match Io_uring.queue_init entries flags with
     | Error errno ->
-      halt ("queue_init failed: errno=" ^ (C.String.strerror errno))
+      halt ("queue_init failed: errno=" ^ (Os.C.String.strerror errno))
     | Ok ring -> ring
   in
 

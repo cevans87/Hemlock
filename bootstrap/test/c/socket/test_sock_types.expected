@@ -1,0 +1,7 @@
+Sock.stream: 1
+Sock.dgram: 2
+Sock.raw: 3
+Sock.seqpacket: 5
+Sock.nonblock: 2048
+Sock.cloexec: 524288
+sock_types: ok

@@ -1,0 +1,4 @@
+initial flags: 0
+set flags (clamp): 16
+sq_ready: 0, cq_ready: 0
+params: ok

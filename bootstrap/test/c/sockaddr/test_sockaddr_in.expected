@@ -1,0 +1,6 @@
+port: 8080
+addr: 0x7f000001
+length: 16
+alloc port: 0
+alloc addr: 0x00000000
+sockaddr_in: ok

@@ -1,5 +1,6 @@
 open! Basis
 include Basis.Rudiments
+open Os
 
 type algorithm =
   | Aplr

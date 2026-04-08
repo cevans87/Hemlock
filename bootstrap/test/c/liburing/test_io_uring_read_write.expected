@@ -1,0 +1,5 @@
+opened fd: yes
+write bytes: 5
+read bytes: 5
+read data: hello
+read_write: ok

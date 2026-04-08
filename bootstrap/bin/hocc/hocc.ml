@@ -1,5 +1,6 @@
 open Basis
 open! Basis.Rudiments
+open Os
 
 let parse_hmhi (Io.{hmhi; _} as io) =
   match hmhi with
@@ -38,7 +39,7 @@ let parse_hmh (Io.{hmh; _} as io) =
   | Ok hmh -> io, hmh
 
 let _ =
-  let conf = Conf.of_argv Os.argv in
+  let conf = Conf.of_argv System.argv in
   let io = Io.init conf in
   let io, hmhi_opt = parse_hmhi io in
   let io, hmh = parse_hmh io in

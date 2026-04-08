@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 
 let print s =
   File.Fmt.stdout |> Fmt.fmt s |> ignore

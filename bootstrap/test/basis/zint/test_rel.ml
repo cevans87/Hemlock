@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open Zint
 
 let pp_x u formatter =

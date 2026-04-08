@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open I32
 
 let pp_x x formatter =

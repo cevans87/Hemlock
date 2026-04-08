@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 
 let test () =
   File.Fmt.stdout

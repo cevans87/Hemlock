@@ -1,5 +1,6 @@
 open Basis
 open! Basis.Rudiments
+open Os
 
 let line_raw_indentation line =
   String.C.Slice.fold_until ~init:0L ~f:(fun col cp ->

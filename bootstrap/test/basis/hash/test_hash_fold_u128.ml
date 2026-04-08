@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open Hash
 
 let u128_of_tup = RudimentsInt0.u128_of_tup

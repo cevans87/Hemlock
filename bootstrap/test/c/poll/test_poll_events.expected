@@ -1,0 +1,8 @@
+Event.pollin: 1
+Event.pollout: 4
+Event.pollerr: 8
+Event.pollhup: 16
+Event.pollnval: 32
+Event.pollpri: 2
+Event.pollrdhup: 8192
+poll_events: ok

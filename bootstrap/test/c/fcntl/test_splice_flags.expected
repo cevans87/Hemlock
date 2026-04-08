@@ -1,0 +1,5 @@
+Splice.F.move: 1
+Splice.F.nonblock: 2
+Splice.F.more: 4
+Splice.F.gift: 8
+splice_flags: ok

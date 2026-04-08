@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open Codepoint
 
 let pp_uns_x u formatter =

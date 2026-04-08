@@ -1,0 +1,16 @@
+Sol.socket: 1
+So.reuseaddr: 2
+So.reuseport: 15
+So.keepalive: 9
+So.sndbuf: 7
+So.rcvbuf: 8
+So.linger: 13
+So.error: 4
+Msg.dontwait: 64
+Msg.nosignal: 16384
+Msg.more: 32768
+Msg.waitall: 256
+Shut.rd: 0
+Shut.wr: 1
+Shut.rdwr: 2
+socket_constants: ok

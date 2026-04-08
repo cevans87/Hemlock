@@ -1,6 +1,7 @@
 (** Command line configuration parameters. *)
 
 open Basis
+open Os
 
 type algorithm =
   | Aplr (** APLR(1) algorithm. *)

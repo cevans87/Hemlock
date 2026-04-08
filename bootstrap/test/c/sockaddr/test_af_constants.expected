@@ -1,0 +1,4 @@
+af_inet: 2
+af_inet6: 10
+af_unix: 1
+af_constants: ok

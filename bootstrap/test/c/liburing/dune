@@ -1,3 +1,11 @@
 (tests
- (names test_io_uring_nop test_io_uring_setup)
- (libraries C))
+ (names
+  test_io_uring_nop
+  test_io_uring_setup
+  test_io_uring_flags
+  test_io_uring_params
+  test_io_uring_read_write
+  test_io_uring_peek_cqe
+  test_io_uring_mkdirat_unlinkat
+  test_io_uring_fsync)
+ (libraries Basis))

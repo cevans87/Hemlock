@@ -1,7 +1,7 @@
 open Basis
-open C.String
+open Os.C.String
 
-open C.Errno
+open Os.C.Errno
 
 let () =
   Array.iter ~f:(fun e ->

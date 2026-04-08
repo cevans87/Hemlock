@@ -1,0 +1,6 @@
+(tests
+ (names
+  test_file
+  test_file2
+  test_sink)
+ (libraries Basis))

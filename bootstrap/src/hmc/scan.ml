@@ -39,6 +39,7 @@
 
 open Basis
 open Basis.Rudiments
+open Os
 
 (* Various codepoint classes, used as keys in the nodes' `edges[01]` transition maps. Most nodes
  * construct their maps using `map_of_cps_alist`, but more involved nodes use `map_of_cpsets_alist`

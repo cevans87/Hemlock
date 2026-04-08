@@ -1,0 +1,7 @@
+At.fdcwd: -100
+At.removedir: 512
+At.symlink_nofollow: 256
+At.symlink_follow: 1024
+At.empty_path: 4096
+At.eaccess: 512
+at_constants: ok

@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open I64
 
 (* The test output is quite large, so only its hash is printed by default. Set verbose to true

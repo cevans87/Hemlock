@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open Text
 
 let stream_of_bytes_list bl =

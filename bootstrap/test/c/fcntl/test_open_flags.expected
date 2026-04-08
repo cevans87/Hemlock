@@ -1,0 +1,17 @@
+O.rdonly: 0
+O.wronly: 1
+O.rdwr: 2
+O.creat: 64
+O.excl: 128
+O.noctty: 256
+O.trunc: 512
+O.append: 1024
+O.nonblock: 2048
+O.dsync: 4096
+O.sync: 1052672
+O.directory: 65536
+O.nofollow: 131072
+O.cloexec: 524288
+O.path: 2097152
+O.tmpfile: 4259840
+open_flags: ok

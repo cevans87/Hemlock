@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open String
 
 let print_matches matches =

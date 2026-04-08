@@ -7,6 +7,7 @@
 
 open Basis
 open! Basis.Rudiments
+open Os
 
 type t = {
   err: (module Fmt.Formatter);

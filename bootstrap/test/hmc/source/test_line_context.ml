@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open! Hmc
 
 let scan_str s =

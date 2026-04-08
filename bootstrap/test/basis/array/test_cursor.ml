@@ -1,5 +1,6 @@
 open! Basis.Rudiments
 open! Basis
+open Os
 open Array
 
 let rec fn arr hd cursor tl =

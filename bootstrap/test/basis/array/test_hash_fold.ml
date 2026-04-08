@@ -1,6 +1,7 @@
 open! Basis.Rudiments
 open! Basis
 open Basis.Array
+open Os
 
 let test () =
   let rec fn arrs = begin

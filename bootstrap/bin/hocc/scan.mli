@@ -2,6 +2,7 @@
 
 open Basis
 open! Basis.Rudiments
+open Os
 
 module Token: sig
   type t =

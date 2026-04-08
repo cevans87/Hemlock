@@ -1,5 +1,6 @@
 open Basis
 include Basis.Rudiments
+open Os
 open Hmc
 
 let scan_file path =
@@ -24,7 +25,7 @@ let scan_file path =
     | Error err -> halt (
       String.Fmt.empty
       |> Fmt.fmt "File.of_path error: "
-      |> Fmt.fmt (Errno_deprecated.to_string err)
+      |> Fmt.fmt (C.String.strerrordesc_np err)
       |> Fmt.fmt "\n"
       |> Fmt.to_string
     )
@@ -32,9 +33,9 @@ let scan_file path =
   ()
 
 let _ =
-  match Array.length Os.argv with
+  match Array.length System.argv with
   | 0L | 1L -> halt "hmc usage: hmc <path>"
   | _ -> begin
-      let path = Path.of_bytes (Bytes.Slice.init (Array.get 1L Os.argv)) in
+      let path = Path.of_bytes (Bytes.Slice.init (Array.get 1L System.argv)) in
       scan_file path
     end

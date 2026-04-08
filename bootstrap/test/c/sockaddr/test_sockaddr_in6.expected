@@ -1,0 +1,7 @@
+port: 9090
+addr[15]: 1
+scope_id: 0
+length: 28
+alloc port: 0
+alloc scope_id: 0
+sockaddr_in6: ok

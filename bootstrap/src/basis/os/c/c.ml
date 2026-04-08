@@ -1,0 +1,10 @@
+module Errno = Errno
+module Fcntl = Fcntl
+module Flags_intf = Flags_intf
+module Liburing = Liburing
+module Poll = Poll
+module Sockaddr = Sockaddr
+module Socket = Socket
+module Stat = Stat
+module String = struct include C_string end
+module Unistd = Unistd

@@ -1,5 +1,6 @@
 open Basis
 open! Basis.Rudiments
+open Os
 
 (* Specify the parser. `hocc ...` expands to a module implementation, `{ ... }`. *)
 include hocc

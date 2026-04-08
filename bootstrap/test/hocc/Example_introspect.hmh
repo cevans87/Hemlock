@@ -1,5 +1,6 @@
 open Basis
 open! Basis.Rudiments
+open Os
 
 include hocc
     left mul

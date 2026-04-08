@@ -44,6 +44,7 @@
 
 open Basis
 open Basis.Rudiments
+open Os
 
 module Token : sig
   module Rendition : sig

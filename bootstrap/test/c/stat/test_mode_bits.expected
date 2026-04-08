@@ -1,0 +1,16 @@
+Mode.irusr: 256
+Mode.iwusr: 128
+Mode.ixusr: 64
+Mode.irwxu: 448
+Mode.irgrp: 32
+Mode.iwgrp: 16
+Mode.ixgrp: 8
+Mode.irwxg: 56
+Mode.iroth: 4
+Mode.iwoth: 2
+Mode.ixoth: 1
+Mode.irwxo: 7
+Mode.isuid: 2048
+Mode.isgid: 1024
+Mode.isvtx: 512
+mode_bits: ok

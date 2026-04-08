@@ -1,5 +1,6 @@
 open Basis
 include Basis.Rudiments
+open Os
 
 type t = {
   err: (module Fmt.Formatter);
@@ -46,9 +47,8 @@ let open_error ~err path error =
   let _err =
     err
     |> Fmt.fmt "hocc: File.of_path " |> Path.pp path |> Fmt.fmt ": ["
-    |> Errno_deprecated.pp error
-    |> Fmt.fmt "] "
-    |> Fmt.fmt (Errno_deprecated.to_string error)
+    |> Fmt.fmt (C.String.strerrordesc_np error)
+    |> Fmt.fmt "]"
     |> Fmt.fmt "\n"
   in
   Stdlib.exit 1
@@ -113,7 +113,7 @@ let init conf =
 let open_outfile_as_formatter ~is_report ~err path =
   let _ = match is_report with
     | false -> ()
-    | true -> Os.mkdirat (Path.dirname path) |> ignore
+    | true -> System.mkdirat (Path.dirname path) |> ignore
   in
   match File.of_path ~flag:File.Flag.W path with
   | Ok f -> File.Fmt.of_t f

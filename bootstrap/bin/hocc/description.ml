@@ -1,5 +1,6 @@
 open Basis
 open! Basis.Rudiments
+open Os
 
 let generate_txt conf io Spec.{algorithm; precs; symbols; prods; states; _} =
   let pp_symbol_index symbol_index formatter = begin
